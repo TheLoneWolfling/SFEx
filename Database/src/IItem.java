@@ -1,6 +1,5 @@
 
 public interface IItem {
-	public int getID();
 	public String getTitle();
 	public void setTitle(String title);
 	public String getDescription();
