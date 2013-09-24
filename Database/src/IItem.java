@@ -8,7 +8,9 @@ public interface IItem {
 	public String getLocation();
 	public void setLocation(String location);
 	public String[] getTags();
-	public void setTags();
+	// Return true if tag was already added
+	public boolean addTag(String tag);
+	public boolean removeTag(String tag);
 	public int getPriceInCents();
 	public boolean beenBought();
 	public void setBought();
