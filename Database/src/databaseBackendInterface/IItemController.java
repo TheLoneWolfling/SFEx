@@ -1,10 +1,12 @@
 package databaseBackendInterface;
 
+import java.util.ArrayList;
+
 public interface IItemController {
 
 	public Iterable<IItem> getItems();
 
-	public IItem registerItem(IUser user);
+	public IItem registerItem(String title, String description, String location, ArrayList<String> tags, int price, IUser user);
 	
 	// Scan through and remove any tag IDs that don't have any associated items
 	public void cleanTagRelations();
