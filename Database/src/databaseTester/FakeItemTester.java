@@ -33,21 +33,16 @@ public class FakeItemTester {
 		return new fakeItem(FAKE_ITEM_NAME, FAKE_ITEM_DESCRIPTION, FAKE_ITEM_LOCATION, new ArrayList<String>(Arrays.asList(tags)), FAKE_ITEM_COST, u);
 	}
 
-	@Test
-	public void testFakeItem() {
-		try {
-			new fakeItem("", "", "", null, 0, u);
-			fail("Null tags list doesn't throw an exception!");
-		} catch (Exception e) {
-			assertTrue(e instanceof NullTagsException);
-		}
-		try {
-			new fakeItem("", "", "", new ArrayList<String>(Arrays.asList(tags)), 0, null);
-			fail("Null seller doesn't throw an exception!");
-		} catch (Exception e) {
-			assertTrue(e instanceof NoSuchUserException);
-		}		
+	@Test(expected=NullTagsException.class)
+	public void testNullTagsList() throws NullTagsException, NoSuchUserException {
+		new fakeItem("", "", "", null, 0, u);
 	}
+	
+	@Test(expected=NoSuchUserException.class)
+	public void testNoSuchUserException() throws NullTagsException, NoSuchUserException {
+		new fakeItem("", "", "", new ArrayList<String>(Arrays.asList(tags)), 0, null);
+	}
+
 
 	@Test
 	public void testGetTitle() {
@@ -163,6 +158,15 @@ public class FakeItemTester {
 		for (String tag : tags) {
 			assertTrue(item.hasTag(tag));
 		}
+	}
+
+	public static void assertItemDefault(IItem item, IUser u) {
+		assertEquals(FAKE_ITEM_NAME, item.getTitle());
+		assertEquals(FAKE_ITEM_DESCRIPTION, item.getDescription());
+		assertEquals(FAKE_ITEM_LOCATION, item.getLocation());
+		assertArrayEquals(tags, item.getTags());
+		assertEquals(FAKE_ITEM_COST, item.getPriceInCents());
+		assertEquals(u, item.getSeller());
 	}
 
 }

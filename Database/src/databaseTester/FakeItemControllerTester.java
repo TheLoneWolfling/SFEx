@@ -28,12 +28,7 @@ public class FakeItemControllerTester {
 	public void setUp() throws Exception {
 		c = makeItemController();
 		u = FakeUserTester.makeUser();
-		c.registerItem(FakeItemTester.FAKE_ITEM_NAME, 
-						FakeItemTester.FAKE_ITEM_DESCRIPTION,
-						FakeItemTester.FAKE_ITEM_LOCATION,
-						new ArrayList<String>(Arrays.asList(FakeItemTester.tags)),
-						FakeItemTester.FAKE_ITEM_COST,
-						u);
+		registerDefaultItem(c, u);
 	}
 
 	@Test
@@ -46,35 +41,14 @@ public class FakeItemControllerTester {
 		}
 		assertEquals(1, num);
 		
-		assertEquals(FakeItemTester.FAKE_ITEM_NAME, item.getTitle());
-		assertEquals(FakeItemTester.FAKE_ITEM_DESCRIPTION, item.getDescription());
-		assertEquals(FakeItemTester.FAKE_ITEM_LOCATION, item.getLocation());
-		assertArrayEquals(FakeItemTester.tags, item.getTags());
-		assertEquals(FakeItemTester.FAKE_ITEM_COST, item.getPriceInCents());
-		assertEquals(u, item.getSeller());
+		FakeItemTester.assertItemDefault(item, u);
 	}
 
 	@Test
 	public void testRegisterItem() {
-		try {
-			c.registerItem(FakeItemTester.FAKE_ITEM_NAME, 
-					FakeItemTester.FAKE_ITEM_DESCRIPTION,
-					FakeItemTester.FAKE_ITEM_LOCATION,
-					new ArrayList<String>(Arrays.asList(FakeItemTester.tags)),
-					FakeItemTester.FAKE_ITEM_COST,
-					u);
-		} catch (NullTagsException e) {
-			fail ("Null tags?");
-		} catch (NoSuchUserException e) {
-			fail ("No such user?");
-		}
+		registerDefaultItem(c, u);
 		for (IItem i : c.getItems()) {
-			assertEquals(FakeItemTester.FAKE_ITEM_NAME, i.getTitle());
-			assertEquals(FakeItemTester.FAKE_ITEM_DESCRIPTION, i.getDescription());
-			assertEquals(FakeItemTester.FAKE_ITEM_LOCATION, i.getLocation());
-			assertArrayEquals(FakeItemTester.tags, i.getTags());
-			assertEquals(FakeItemTester.FAKE_ITEM_COST, i.getPriceInCents());
-			assertEquals(u, i.getSeller());
+			FakeItemTester.assertItemDefault(i, u);
 		}
 	}
 
@@ -84,27 +58,33 @@ public class FakeItemControllerTester {
 	}
 
 	@Test
-	public void testGetItemsWithTag() {
+	public void testGetItemsWithTag() throws NoSuchTagException {
 		for (String t : FakeItemTester.tags) {
 			int num = 0;
 			IItem item = null;
-			try {
-				for (IItem i : c.getItemsWithTag(t)) {
-					num++;
-					item = i;
-				}
-				assertEquals(t, 1, num);
-				
-				assertEquals(FakeItemTester.FAKE_ITEM_NAME, item.getTitle());
-				assertEquals(FakeItemTester.FAKE_ITEM_DESCRIPTION, item.getDescription());
-				assertEquals(FakeItemTester.FAKE_ITEM_LOCATION, item.getLocation());
-				assertArrayEquals(FakeItemTester.tags, item.getTags());
-				assertEquals(FakeItemTester.FAKE_ITEM_COST, item.getPriceInCents());
-				assertEquals(u, item.getSeller());
-			} catch (NoSuchTagException e) {
-				fail("No such tag: " + e);
+			for (IItem i : c.getItemsWithTag(t)) {
+				num++;
+				item = i;
 			}
+			assertEquals(t, 1, num);
+			FakeItemTester.assertItemDefault(item, u);
+
 			
+		}
+	}
+
+	static void registerDefaultItem(IItemController c, IUser u) {
+		try {
+			c.registerItem(FakeItemTester.FAKE_ITEM_NAME, 
+					FakeItemTester.FAKE_ITEM_DESCRIPTION,
+					FakeItemTester.FAKE_ITEM_LOCATION,
+					new ArrayList<String>(Arrays.asList(FakeItemTester.tags)),
+					FakeItemTester.FAKE_ITEM_COST,
+					u);
+		} catch (NullTagsException e) {
+			fail("Null tags?");
+		} catch (NoSuchUserException e) {
+			fail ("No such user?");
 		}
 	}
 

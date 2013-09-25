@@ -2,8 +2,6 @@ package databaseTester;
 
 import static org.junit.Assert.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -11,8 +9,6 @@ import org.junit.Test;
 import databaseBackendInterface.IItem;
 import databaseBackendInterface.IItemController;
 import databaseBackendInterface.IUser;
-import databaseBackendInterface.NoSuchUserException;
-import databaseBackendInterface.NullTagsException;
 import fakeDatabase.fakeUser;
 
 public class FakeUserTester {
@@ -45,18 +41,7 @@ public class FakeUserTester {
 	@Test
 	public void testGetItems() {
 		IItemController c = FakeItemControllerTester.makeItemController();
-		try {
-			c.registerItem(FakeItemTester.FAKE_ITEM_NAME, 
-					FakeItemTester.FAKE_ITEM_DESCRIPTION,
-					FakeItemTester.FAKE_ITEM_LOCATION,
-					new ArrayList<String>(Arrays.asList(FakeItemTester.tags)),
-					FakeItemTester.FAKE_ITEM_COST,
-					u);
-		} catch (NullTagsException e) {
-			fail("Null tags?");
-		} catch (NoSuchUserException e) {
-			fail ("No such user?");
-		}
+		FakeItemControllerTester.registerDefaultItem(c, u);
 		int num = 0;
 		IItem item = null;
 		for (IItem d : u.getItems()) {
@@ -64,12 +49,7 @@ public class FakeUserTester {
 			item = d;
 		}
 		assertEquals(1, num);
-		assertEquals(FakeItemTester.FAKE_ITEM_NAME, item.getTitle());
-		assertEquals(FakeItemTester.FAKE_ITEM_DESCRIPTION, item.getDescription());
-		assertEquals(FakeItemTester.FAKE_ITEM_LOCATION, item.getLocation());
-		assertArrayEquals(FakeItemTester.tags, item.getTags());
-		assertEquals(FakeItemTester.FAKE_ITEM_COST, item.getPriceInCents());
-		assertEquals(u, item.getSeller());
+		FakeItemTester.assertItemDefault(item, u);
 	}
 
 	@Test
@@ -80,6 +60,12 @@ public class FakeUserTester {
 	@Test
 	public void testPopulate() {
 		u.populate();
+	}
+
+	static void assertUserDefault(IUser u) {
+		assertEquals(FAKE_USER, u.getUsername());
+		assertEquals(FAKE_PASSHASH, u.getPasswordHash());
+		assertEquals(FAKE_EMAIL, u.getEmail());
 	}
 
 	public static IUser makeUser() {

@@ -35,15 +35,12 @@ public class FakeUserControllerTester {
 		} catch (NoSuchUserException e) {
 			fail("No such user found: " + e);
 		}
-		try {
-			u = c.getUser(FakeUserTester.FAKE_USER + "ABC");
-			fail("Shouldn't have gotten a user: " + u);
-		} catch (NoSuchUserException e) {
-			//fallthrough
-		}
-		assertEquals(FakeUserTester.FAKE_USER, u.getUsername());
-		assertEquals(FakeUserTester.FAKE_PASSHASH, u.getPasswordHash());
-		assertEquals(FakeUserTester.FAKE_EMAIL, u.getEmail());
+		FakeUserTester.assertUserDefault(u);
+	}
+	
+	@Test(expected=NoSuchUserException.class)
+	public void testNoSuchUser() throws NoSuchUserException {
+		c.getUser(FakeUserTester.FAKE_USER + "ABC");
 	}
 
 	@Test
@@ -55,22 +52,16 @@ public class FakeUserControllerTester {
 			user = u;
 		}
 		assertEquals(1, num);
-		assertEquals(FakeUserTester.FAKE_USER, user.getUsername());
-		assertEquals(FakeUserTester.FAKE_PASSHASH, user.getPasswordHash());
-		assertEquals(FakeUserTester.FAKE_EMAIL, user.getEmail());
+		FakeUserTester.assertUserDefault(user);
 	}
 
 	@Test
-	public void testRegisterUser() {
+	public void testRegisterUser() throws NoSuchUserException {
 		c.registerUser(FakeUserTester.FAKE_USER + "ABC", 
 				FakeUserTester.FAKE_PASSHASH + "ABC", 
 				FakeUserTester.FAKE_EMAIL + "ABC");
-		IUser u = null;
-		try {
-			u = c.getUser(FakeUserTester.FAKE_USER + "ABC");
-		} catch (NoSuchUserException e) {
-			fail("No such user found: " + e);
-		}
+		IUser u = c.getUser(FakeUserTester.FAKE_USER + "ABC");
+
 		assertEquals(FakeUserTester.FAKE_USER + "ABC", u.getUsername());
 		assertEquals(FakeUserTester.FAKE_PASSHASH + "ABC", u.getPasswordHash());
 		assertEquals(FakeUserTester.FAKE_EMAIL + "ABC", u.getEmail());
