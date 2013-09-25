@@ -10,6 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import databaseBackendInterface.IItem;
+import databaseBackendInterface.IItemController;
 import databaseBackendInterface.IUser;
 import databaseBackendInterface.NoSuchTagException;
 import databaseBackendInterface.NoSuchUserException;
@@ -20,12 +21,12 @@ import fakeDatabase.fakeItemController;
 
 public class FakeItemControllerTester {
 
-	private fakeItemController c;
+	private IItemController c;
 	private IUser u;
 
 	@Before
 	public void setUp() throws Exception {
-		c = new fakeItemController();
+		c = makeItemController();
 		u = FakeUserTester.makeUser();
 		c.registerItem(FakeItemTester.FAKE_ITEM_NAME, 
 						FakeItemTester.FAKE_ITEM_DESCRIPTION,
@@ -105,6 +106,10 @@ public class FakeItemControllerTester {
 			}
 			
 		}
+	}
+
+	public static IItemController makeItemController() {
+		return new fakeItemController();
 	}
 
 }

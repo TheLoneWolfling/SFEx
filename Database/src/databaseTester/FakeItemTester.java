@@ -5,22 +5,14 @@ import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import databaseBackendInterface.IItem;
 import databaseBackendInterface.IUser;
-import databaseBackendInterface.NoSuchTagException;
 import databaseBackendInterface.NullTagsException;
 import databaseBackendInterface.NoSuchUserException;
 import fakeDatabase.fakeItem;
-import fakeDatabase.fakeUser;
 
 public class FakeItemTester {
 	public static final int FAKE_ITEM_COST = 100;
