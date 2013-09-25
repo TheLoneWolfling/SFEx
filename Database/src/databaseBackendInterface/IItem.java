@@ -11,7 +11,8 @@ public interface IItem {
 	public boolean hasTag(String tag);
 	// Return true if tag was already added
 	public boolean addTag(String tag);
-	public boolean removeTag(String tag) throws NoSuchTagException;
+	// Returns true if tag existed beforehand
+	public boolean removeTag(String tag);
 	public int getPriceInCents();
 	public void setPriceInCents(int price);
 	public boolean beenBought();

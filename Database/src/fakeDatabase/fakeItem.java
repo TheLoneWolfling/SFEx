@@ -1,23 +1,28 @@
 package fakeDatabase;
 
 import java.util.ArrayList;
-import java.util.List;
-
+import java.util.Collection;
 import databaseBackendInterface.IItem;
 import databaseBackendInterface.IUser;
+import databaseBackendInterface.NoSuchUserException;
+import databaseBackendInterface.NullTagsException;
 
 public class fakeItem implements IItem {
 	private String title = "";
 	private String description = "";
 	private String location = "";
-	private List<String> tags = new ArrayList<String>();
+	private Collection<String> tags = new ArrayList<String>();
 	private int price;
 	private boolean bought = false;
 	private IUser seller;
 
 	
-	protected fakeItem(String title, String description, String location,
-			List<String> tags, int price, IUser seller) {
+	public fakeItem(String title, String description, String location,
+			Collection<String> tags, int price, IUser seller) throws NullTagsException, NoSuchUserException {
+		if (tags == null)
+			throw new NullTagsException();
+		else if (seller == null)
+			throw new NoSuchUserException(null);
 		this.title = title;
 		this.description = description;
 		this.location = location;
@@ -46,14 +51,8 @@ public class fakeItem implements IItem {
 	public void setPrice(int price) {
 		this.price = price;
 	}
-	public boolean isBought() {
-		return bought;
-	}
-	public void setBought(boolean bought) {
-		this.bought = bought;
-	}
 	public String[] getTags() {
-		return (String[]) tags.toArray();
+		return tags.toArray(new String[] {});
 	}
 	public IUser getSeller() {
 		return seller;

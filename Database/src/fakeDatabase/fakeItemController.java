@@ -7,6 +7,8 @@ import databaseBackendInterface.IItem;
 import databaseBackendInterface.IItemController;
 import databaseBackendInterface.IUser;
 import databaseBackendInterface.NoSuchTagException;
+import databaseBackendInterface.NoSuchUserException;
+import databaseBackendInterface.NullTagsException;
 
 public class fakeItemController implements IItemController {
 	
@@ -18,7 +20,7 @@ public class fakeItemController implements IItemController {
 	}
 
 	@Override
-	public IItem registerItem(String title, String description, String location, ArrayList<String> tags, int price, IUser user) {
+	public IItem registerItem(String title, String description, String location, ArrayList<String> tags, int price, IUser user) throws NullTagsException, NoSuchUserException {
 		IItem item = new fakeItem(title, description, location, tags, price, user);
 		((fakeUser) user).register(item);
 		return item;
