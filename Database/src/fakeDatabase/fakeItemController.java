@@ -1,6 +1,7 @@
 package fakeDatabase;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import databaseBackendInterface.IItem;
@@ -23,6 +24,7 @@ public class fakeItemController implements IItemController {
 	public IItem registerItem(String title, String description, String location, ArrayList<String> tags, int price, IUser user) throws NullTagsException, NoSuchUserException {
 		IItem item = new fakeItem(title, description, location, tags, price, user);
 		((fakeUser) user).register(item);
+		items.add(item);
 		return item;
 	}
 

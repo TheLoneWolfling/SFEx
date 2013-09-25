@@ -23,23 +23,22 @@ import fakeDatabase.fakeItem;
 import fakeDatabase.fakeUser;
 
 public class FakeItemTester {
-	private static final int FAKE_ITEM_COST = 100;
-	private static final String FAKE_ITEM_LOCATION = "Location";
-	private static final String FAKE_ITEM_DESCRIPTION = "Description";
-	private static final String FAKE_ITEM_NAME = "Name";
-	private static final String FAKE_EMAIL = "test@te.st";
-	private static final String FAKE_PASSHASH = "12345";
-	private static final String FAKE_USER = "Fake User";
-	private final String[] tags = new String[] {"A", "BC", "DEF", "GH I"};
+	public static final int FAKE_ITEM_COST = 100;
+	public static final String FAKE_ITEM_LOCATION = "Location";
+	public static final String FAKE_ITEM_DESCRIPTION = "Description";
+	public static final String FAKE_ITEM_NAME = "Name";
+	public static final String[] tags = new String[] {"A", "BC", "DEF", "GH I"};
 	private IItem item;
-	private fakeItem nothing;
 	private IUser u;
 
 	@Before
 	public void setUp() throws Exception {
-		u = new fakeUser(FAKE_USER, FAKE_PASSHASH, FAKE_EMAIL);
-		item = new fakeItem(FAKE_ITEM_NAME, FAKE_ITEM_DESCRIPTION, FAKE_ITEM_LOCATION, new ArrayList<String>(Arrays.asList(tags)), FAKE_ITEM_COST, u);
-		nothing = new fakeItem("", "", "", new ArrayList<String>(), 0, u);
+		u = FakeUserTester.makeUser();
+		item = makeItem(u);
+	}
+
+	public static fakeItem makeItem(IUser u) throws NullTagsException, NoSuchUserException {
+		return new fakeItem(FAKE_ITEM_NAME, FAKE_ITEM_DESCRIPTION, FAKE_ITEM_LOCATION, new ArrayList<String>(Arrays.asList(tags)), FAKE_ITEM_COST, u);
 	}
 
 	@Test
@@ -61,7 +60,6 @@ public class FakeItemTester {
 	@Test
 	public void testGetTitle() {
 		assertEquals(item.getTitle(), FAKE_ITEM_NAME);
-		assertEquals(nothing.getTitle(), "");
 	}
 
 	@Test
@@ -74,7 +72,6 @@ public class FakeItemTester {
 	@Test
 	public void testGetDescription() {
 		assertEquals(item.getDescription(), FAKE_ITEM_DESCRIPTION);
-		assertEquals(nothing.getDescription(), "");
 	}
 
 	@Test
@@ -87,7 +84,6 @@ public class FakeItemTester {
 	@Test
 	public void testGetLocation() {
 		assertEquals(item.getLocation(), FAKE_ITEM_LOCATION);
-		assertEquals(nothing.getLocation(), "");
 	}
 
 	@Test
@@ -100,33 +96,27 @@ public class FakeItemTester {
 	@Test
 	public void testSetPrice() {
 		assertEquals(item.getPriceInCents(), FAKE_ITEM_COST);
-		assertEquals(nothing.getPriceInCents(), 0);
 	}
 
 	@Test
 	public void testIsBought() {
 		assertFalse(item.beenBought());
-		assertFalse(nothing.beenBought());
 	}
 
 	@Test
 	public void testSetBought() {
 		item.setBought();
-		nothing.setBought();
 		assertTrue(item.beenBought());
-		assertTrue(nothing.beenBought());
 	}
 
 	@Test
 	public void testGetTags() {
 		assertArrayEquals(item.getTags(), tags);
-		assertArrayEquals(nothing.getTags(), new IItem[] {});
 	}
 
 	@Test
 	public void testGetSeller() {
 		assertEquals(item.getSeller(), u);
-		assertEquals(nothing.getSeller(), u);
 	}
 
 	@Test
@@ -163,14 +153,11 @@ public class FakeItemTester {
 						fail("Removed non-existant tag!");
 			}
 		}
-		if (nothing.removeTag(""))
-			fail("Removed non-existant tag!");
 	}
 
 	@Test
 	public void testGetPriceInCents() {
 		assertEquals(item.getPriceInCents(), FAKE_ITEM_COST);
-		assertEquals(nothing.getPriceInCents(), 0);
 	}
 
 	@Test
