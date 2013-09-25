@@ -1,3 +1,4 @@
+package databaseBackendInterface;
 
 public interface IItem {
 	public String getTitle();
