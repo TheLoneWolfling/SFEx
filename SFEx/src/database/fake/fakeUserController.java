@@ -1,12 +1,13 @@
-package fakeDatabase;
+package database.fake;
 
 import java.util.LinkedHashMap;
-import databaseBackendInterface.IUser;
-import databaseBackendInterface.IUserController;
-import databaseBackendInterface.NoSuchUserException;
+
+import database.API.IUser;
+import database.API.IUserController;
+import database.API.NoSuchUserException;
 
 public class fakeUserController implements IUserController {
-	
+
 	private LinkedHashMap<String, IUser> users = new LinkedHashMap<>();
 
 	@Override

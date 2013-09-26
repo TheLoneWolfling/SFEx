@@ -1,15 +1,15 @@
-package databaseTester;
+package database.tester;
 
 import static org.junit.Assert.*;
-
 
 import org.junit.Before;
 import org.junit.Test;
 
-import databaseBackendInterface.IItem;
-import databaseBackendInterface.IItemController;
-import databaseBackendInterface.IUser;
-import fakeDatabase.fakeUser;
+import shared.API.IItem;
+
+import database.API.IItemController;
+import database.API.IUser;
+import database.fake.fakeUser;
 
 public class FakeUserTester {
 

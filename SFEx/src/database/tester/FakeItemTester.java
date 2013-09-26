@@ -1,4 +1,4 @@
-package databaseTester;
+package database.tester;
 
 import static org.junit.Assert.*;
 
@@ -8,18 +8,19 @@ import java.util.Collection;
 import org.junit.Before;
 import org.junit.Test;
 
-import databaseBackendInterface.IItem;
-import databaseBackendInterface.IUser;
-import databaseBackendInterface.NullTagsException;
-import databaseBackendInterface.NoSuchUserException;
-import fakeDatabase.fakeItem;
+import shared.API.IItem;
+
+import database.API.IUser;
+import database.API.NoSuchUserException;
+import database.API.NullTagsException;
+import database.fake.fakeItem;
 
 public class FakeItemTester {
 	public static final int FAKE_ITEM_COST = 100;
 	public static final String FAKE_ITEM_LOCATION = "Location";
 	public static final String FAKE_ITEM_DESCRIPTION = "Description";
 	public static final String FAKE_ITEM_NAME = "Name";
-	public static final String[] tags = new String[] {"A", "BC", "DEF", "GH I"};
+	public static final String[] tags = new String[] { "A", "BC", "DEF", "GH I" };
 	private IItem item;
 	private IUser u;
 
@@ -29,20 +30,25 @@ public class FakeItemTester {
 		item = makeItem(u);
 	}
 
-	public static fakeItem makeItem(IUser u) throws NullTagsException, NoSuchUserException {
-		return new fakeItem(FAKE_ITEM_NAME, FAKE_ITEM_DESCRIPTION, FAKE_ITEM_LOCATION, new ArrayList<String>(Arrays.asList(tags)), FAKE_ITEM_COST, u);
+	public static fakeItem makeItem(IUser u) throws NullTagsException,
+			NoSuchUserException {
+		return new fakeItem(FAKE_ITEM_NAME, FAKE_ITEM_DESCRIPTION,
+				FAKE_ITEM_LOCATION, new ArrayList<String>(Arrays.asList(tags)),
+				FAKE_ITEM_COST, u);
 	}
 
-	@Test(expected=NullTagsException.class)
-	public void testNullTagsList() throws NullTagsException, NoSuchUserException {
+	@Test(expected = NullTagsException.class)
+	public void testNullTagsList() throws NullTagsException,
+			NoSuchUserException {
 		new fakeItem("", "", "", null, 0, u);
 	}
-	
-	@Test(expected=NoSuchUserException.class)
-	public void testNoSuchUserException() throws NullTagsException, NoSuchUserException {
-		new fakeItem("", "", "", new ArrayList<String>(Arrays.asList(tags)), 0, null);
-	}
 
+	@Test(expected = NoSuchUserException.class)
+	public void testNoSuchUserException() throws NullTagsException,
+			NoSuchUserException {
+		new fakeItem("", "", "", new ArrayList<String>(Arrays.asList(tags)), 0,
+				null);
+	}
 
 	@Test
 	public void testGetTitle() {
@@ -125,19 +131,20 @@ public class FakeItemTester {
 				fail("This tag should exist!");
 			for (String t : tags) {
 				boolean removedContains = removed.contains(t);
-				boolean itemContains = Arrays.asList(item.getTags()).contains(t);
+				boolean itemContains = Arrays.asList(item.getTags())
+						.contains(t);
 				if (!removedContains && !itemContains)
-					fail("Deleted wrong tag!: " + t + "(" + 
-							Arrays.toString(removed.toArray()) + ", " + 
-							Arrays.toString(item.getTags()));
+					fail("Deleted wrong tag!: " + t + "("
+							+ Arrays.toString(removed.toArray()) + ", "
+							+ Arrays.toString(item.getTags()));
 				else if (removedContains && itemContains)
-					fail ("Didn't delete item!: " + t + "(" + 
-							Arrays.toString(removed.toArray()) + ", " + 
-							Arrays.toString(item.getTags()));
+					fail("Didn't delete item!: " + t + "("
+							+ Arrays.toString(removed.toArray()) + ", "
+							+ Arrays.toString(item.getTags()));
 			}
 			for (String t : removed) {
 				if (item.removeTag(t))
-						fail("Removed non-existant tag!");
+					fail("Removed non-existant tag!");
 			}
 		}
 	}
@@ -149,8 +156,8 @@ public class FakeItemTester {
 
 	@Test
 	public void testSetPriceInCents() {
-		item.setPriceInCents(FAKE_ITEM_COST+100);
-		assertEquals(item.getPriceInCents(), FAKE_ITEM_COST+100);
+		item.setPriceInCents(FAKE_ITEM_COST + 100);
+		assertEquals(item.getPriceInCents(), FAKE_ITEM_COST + 100);
 	}
 
 	@Test

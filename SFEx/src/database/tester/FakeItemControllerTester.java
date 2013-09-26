@@ -1,4 +1,4 @@
-package databaseTester;
+package database.tester;
 
 import static org.junit.Assert.*;
 
@@ -8,14 +8,14 @@ import java.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
 
-import databaseBackendInterface.IItem;
-import databaseBackendInterface.IItemController;
-import databaseBackendInterface.IUser;
-import databaseBackendInterface.NoSuchTagException;
-import databaseBackendInterface.NoSuchUserException;
-import databaseBackendInterface.NullTagsException;
+import shared.API.IItem;
 
-import fakeDatabase.fakeItemController;
+import database.API.IItemController;
+import database.API.IUser;
+import database.API.NoSuchTagException;
+import database.API.NoSuchUserException;
+import database.API.NullTagsException;
+import database.fake.fakeItemController;
 
 public class FakeItemControllerTester {
 
@@ -38,7 +38,7 @@ public class FakeItemControllerTester {
 			item = i;
 		}
 		assertEquals(1, num);
-		
+
 		FakeItemTester.assertItemDefault(item, u);
 	}
 
@@ -67,22 +67,20 @@ public class FakeItemControllerTester {
 			assertEquals(t, 1, num);
 			FakeItemTester.assertItemDefault(item, u);
 
-			
 		}
 	}
 
 	static void registerDefaultItem(IItemController c, IUser u) {
 		try {
-			c.registerItem(FakeItemTester.FAKE_ITEM_NAME, 
+			c.registerItem(FakeItemTester.FAKE_ITEM_NAME,
 					FakeItemTester.FAKE_ITEM_DESCRIPTION,
-					FakeItemTester.FAKE_ITEM_LOCATION,
-					new ArrayList<String>(Arrays.asList(FakeItemTester.tags)),
-					FakeItemTester.FAKE_ITEM_COST,
-					u);
+					FakeItemTester.FAKE_ITEM_LOCATION, new ArrayList<String>(
+							Arrays.asList(FakeItemTester.tags)),
+					FakeItemTester.FAKE_ITEM_COST, u);
 		} catch (NullTagsException e) {
 			fail("Null tags?");
 		} catch (NoSuchUserException e) {
-			fail ("No such user?");
+			fail("No such user?");
 		}
 	}
 

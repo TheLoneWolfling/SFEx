@@ -1,10 +1,11 @@
-package fakeDatabase;
+package database.fake;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import databaseBackendInterface.IItem;
-import databaseBackendInterface.IUser;
+import shared.API.IItem;
+
+import database.API.IUser;
 
 public class fakeUser implements IUser {
 
@@ -12,13 +13,12 @@ public class fakeUser implements IUser {
 	private String passwordHash;
 	private String email;
 	private List<IItem> items = new ArrayList<IItem>();
-	
+
 	public fakeUser(String username, String passwordHash, String email) {
 		this.username = username;
 		this.passwordHash = passwordHash;
 		this.email = email;
 	}
-
 
 	@Override
 	public String getUsername() {

@@ -1,15 +1,14 @@
-package databaseTester;
+package database.tester;
 
 import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import databaseBackendInterface.IUser;
-import databaseBackendInterface.IUserController;
-import databaseBackendInterface.NoSuchUserException;
-
-import fakeDatabase.fakeUserController;
+import database.API.IUser;
+import database.API.IUserController;
+import database.API.NoSuchUserException;
+import database.fake.fakeUserController;
 
 public class FakeUserControllerTester {
 
@@ -18,9 +17,8 @@ public class FakeUserControllerTester {
 	@Before
 	public void setUp() throws Exception {
 		c = makeUserController();
-		c.registerUser(FakeUserTester.FAKE_USER, 
-						FakeUserTester.FAKE_PASSHASH, 
-						FakeUserTester.FAKE_EMAIL);
+		c.registerUser(FakeUserTester.FAKE_USER, FakeUserTester.FAKE_PASSHASH,
+				FakeUserTester.FAKE_EMAIL);
 	}
 
 	public static IUserController makeUserController() {
@@ -37,8 +35,8 @@ public class FakeUserControllerTester {
 		}
 		FakeUserTester.assertUserDefault(u);
 	}
-	
-	@Test(expected=NoSuchUserException.class)
+
+	@Test(expected = NoSuchUserException.class)
 	public void testNoSuchUser() throws NoSuchUserException {
 		c.getUser(FakeUserTester.FAKE_USER + "ABC");
 	}
@@ -57,9 +55,9 @@ public class FakeUserControllerTester {
 
 	@Test
 	public void testRegisterUser() throws NoSuchUserException {
-		c.registerUser(FakeUserTester.FAKE_USER + "ABC", 
-				FakeUserTester.FAKE_PASSHASH + "ABC", 
-				FakeUserTester.FAKE_EMAIL + "ABC");
+		c.registerUser(FakeUserTester.FAKE_USER + "ABC",
+				FakeUserTester.FAKE_PASSHASH + "ABC", FakeUserTester.FAKE_EMAIL
+						+ "ABC");
 		IUser u = c.getUser(FakeUserTester.FAKE_USER + "ABC");
 
 		assertEquals(FakeUserTester.FAKE_USER + "ABC", u.getUsername());

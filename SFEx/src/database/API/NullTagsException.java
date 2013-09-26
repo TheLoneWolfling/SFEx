@@ -1,4 +1,4 @@
-package databaseBackendInterface;
+package database.API;
 
 public class NullTagsException extends Exception {
 

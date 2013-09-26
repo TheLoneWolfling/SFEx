@@ -1,17 +1,19 @@
-package fakeDatabase;
+package database.fake;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import databaseBackendInterface.IItem;
-import databaseBackendInterface.IItemController;
-import databaseBackendInterface.IUser;
-import databaseBackendInterface.NoSuchTagException;
-import databaseBackendInterface.NoSuchUserException;
-import databaseBackendInterface.NullTagsException;
+import shared.API.IItem;
+import shared.API.IItemReadonly;
+
+import database.API.IItemController;
+import database.API.IUser;
+import database.API.NoSuchTagException;
+import database.API.NoSuchUserException;
+import database.API.NullTagsException;
 
 public class fakeItemController implements IItemController {
-	
+
 	private List<IItem> items = new ArrayList<IItem>();
 
 	@Override
@@ -20,8 +22,11 @@ public class fakeItemController implements IItemController {
 	}
 
 	@Override
-	public IItem registerItem(String title, String description, String location, ArrayList<String> tags, int price, IUser user) throws NullTagsException, NoSuchUserException {
-		IItem item = new fakeItem(title, description, location, tags, price, user);
+	public IItemReadonly registerItem(String title, String description,
+			String location, ArrayList<String> tags, int price, IUser user)
+			throws NullTagsException, NoSuchUserException {
+		IItem item = new fakeItem(title, description, location, tags, price,
+				user);
 		((fakeUser) user).register(item);
 		items.add(item);
 		return item;
