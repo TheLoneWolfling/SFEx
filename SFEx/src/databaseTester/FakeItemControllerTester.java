@@ -5,7 +5,6 @@ import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -16,7 +15,6 @@ import databaseBackendInterface.NoSuchTagException;
 import databaseBackendInterface.NoSuchUserException;
 import databaseBackendInterface.NullTagsException;
 
-import fakeDatabase.fakeItem;
 import fakeDatabase.fakeItemController;
 
 public class FakeItemControllerTester {
