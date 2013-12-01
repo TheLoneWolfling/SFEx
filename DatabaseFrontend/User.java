@@ -9,12 +9,17 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Set;
 
+import com.mysql.jdbc.exceptions.MySQLIntegrityConstraintViolationException;
+
 public class User {
 
 	@Override
 	public String toString() {
-		return "User [contactInfo=" + contactInfo + ", email=" + email + ", id=" + id + ", passwordHash=" + passwordHash + ", permissions=" + permissions
-				+ ", salt=" + salt + ", userName=" + userName + ", addr=" +  super.toString().split("@")[1] + "]";
+		return "User [contactInfo=" + contactInfo + ", email=" + email
+				+ ", id=" + id + ", passwordHash=" + passwordHash
+				+ ", permissions=" + permissions + ", salt=" + salt
+				+ ", userName=" + userName + ", addr="
+				+ super.toString().split("@")[1] + "]";
 	}
 
 	private static final String CONTACT_INFO_FIELD_NAME = "ContactInfo";
@@ -28,7 +33,8 @@ public class User {
 
 	private static GarbageCollectingConcurrentMap<Long, User> userCache = new GarbageCollectingConcurrentMap<Long, User>();
 
-	private static User getUserFromCache(final ResultSet res) throws SQLException {
+	private static User getUserFromCache(final ResultSet res)
+			throws SQLException {
 		final long userID = res.getLong("id");
 		User u = userCache.get(userID);
 		if (u == null)
@@ -37,7 +43,8 @@ public class User {
 	}
 
 	public static User getUserFromEmail(final String email) throws SQLException {
-		final String sql = "select * from " + TABLE_NAME + " where " + EMAIL_FIELD_NAME + " = ?;";
+		final String sql = "select * from " + TABLE_NAME + " where "
+				+ EMAIL_FIELD_NAME + " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final User u;
 		try {
@@ -51,15 +58,16 @@ public class User {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
-		assert(u.email.equals(email));
 		return u;
 	}
 
 	public static User getUserFromID(final long userID) throws SQLException {
-		final String sql = "select * from " + TABLE_NAME + " where " + ID_FIELD_NAME + " = ?;";
+		final String sql = "select * from " + TABLE_NAME + " where "
+				+ ID_FIELD_NAME + " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final User u;
 		try {
@@ -73,15 +81,17 @@ public class User {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
-		assert (u.id == userID);
 		return u;
 	}
 
-	public static User getUserFromUserName(final String userName) throws SQLException {
-		final String sql = "select * from " + TABLE_NAME + " where " + USER_NAME_FIELD_NAME + " = ?;";
+	public static User getUserFromUserName(final String userName)
+			throws SQLException {
+		final String sql = "select * from " + TABLE_NAME + " where "
+				+ USER_NAME_FIELD_NAME + " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final User u;
 		try {
@@ -95,18 +105,23 @@ public class User {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
-		assert(u.userName.equals(userName));
 		return u;
 	}
 
-	public static User makeUser(final String email, final String userName, final String contactInfo, final String passwordHash,
+	public static User makeUser(final String email, final String userName,
+			final String contactInfo, final String passwordHash,
 			final Set<Permission> permissions, String salt) throws SQLException {
-		final String sql = "insert into " + TABLE_NAME + " (" + EMAIL_FIELD_NAME + ", " + USER_NAME_FIELD_NAME + ", " + CONTACT_INFO_FIELD_NAME + ", "
-				+ PASSWORD_HASH_FIELD_NAME + ", " + SALT_FIELD_NAME + ", " + PERMISSION_LEVEL_FIELD_NAME + ") values (?, ?, ?, ?, ?, ?);";
-		final PreparedStatement st = DataManager.getCon().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+		final String sql = "insert into " + TABLE_NAME + " ("
+				+ EMAIL_FIELD_NAME + ", " + USER_NAME_FIELD_NAME + ", "
+				+ CONTACT_INFO_FIELD_NAME + ", " + PASSWORD_HASH_FIELD_NAME
+				+ ", " + SALT_FIELD_NAME + ", " + PERMISSION_LEVEL_FIELD_NAME
+				+ ") values (?, ?, ?, ?, ?, ?);";
+		final PreparedStatement st = DataManager.getCon().prepareStatement(sql,
+				Statement.RETURN_GENERATED_KEYS);
 		final long userId;
 		try {
 			st.setString(1, email);
@@ -115,27 +130,29 @@ public class User {
 			st.setString(4, passwordHash);
 			st.setString(5, salt);
 			st.setLong(6, Permission.toLong(permissions));
-			final int res = st.executeUpdate();
-			assert (res == 1);
+			try {
+				final int res = st.executeUpdate();
+				if (res != 1)
+					return null;
+			} catch (MySQLIntegrityConstraintViolationException s) {
+				return null;
+			}
 			final ResultSet rs = st.getGeneratedKeys();
 			if (!rs.next())
-				throw new SQLException("No key returned for generated user " + sql);
+				throw new SQLException("No key returned for generated user "
+						+ sql);
 			userId = rs.getLong(1);
+
 		} finally {
 			try {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
-		}			
+		}
 		final User toRet = getUserFromID(userId);
-		assert (toRet.email.equals(email));
-		assert (toRet.userName.equals(userName));
-		assert (toRet.contactInfo.equals(contactInfo));
-		assert (toRet.passwordHash.equals(passwordHash));
-		assert (toRet.salt.equals(salt));
-		assert (toRet.permissions.equals(permissions));
 		return toRet;
 	}
 
@@ -154,18 +171,21 @@ public class User {
 		passwordHash = res.getString(PASSWORD_HASH_FIELD_NAME);
 		salt = res.getString(SALT_FIELD_NAME);
 		contactInfo = res.getString(CONTACT_INFO_FIELD_NAME);
-		permissions = Permission.fromLong(res.getInt(PERMISSION_LEVEL_FIELD_NAME));
+		permissions = Permission.fromLong(res
+				.getInt(PERMISSION_LEVEL_FIELD_NAME));
 	}
 
-	public boolean deletePermission(final Permission permission) throws SQLException {
+	public synchronized boolean deletePermission(final Permission permission)
+			throws SQLException {
 		if (!permissions.remove(permission))
 			return false;
 		syncPermissions();
 		return true;
 	}
 
-	public void deleteUser() throws SQLException {
-		final String sql = "delete from " + TABLE_NAME + " where " + ID_FIELD_NAME + " = ?";
+	public synchronized boolean deleteUser() throws SQLException {
+		final String sql = "delete from " + TABLE_NAME + " where "
+				+ ID_FIELD_NAME + " = ?";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final int res;
 		try {
@@ -176,11 +196,11 @@ public class User {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
-		assert (res == 1);
-		userCache.remove(id);
+		return res == 1;
 	}
 
 	public Set<Bid> getBidsMade() throws SQLException {
@@ -219,9 +239,12 @@ public class User {
 		return userName;
 	}
 
-	public void setContactInfo(final String contactInfo) throws SQLException {
+	public synchronized boolean setContactInfo(final String contactInfo)
+			throws SQLException {
 		this.contactInfo = contactInfo;
-		final String sql = "update " + TABLE_NAME + " set " + CONTACT_INFO_FIELD_NAME + " = ? where " + ID_FIELD_NAME + " = ?;";
+		final String sql = "update " + TABLE_NAME + " set "
+				+ CONTACT_INFO_FIELD_NAME + " = ? where " + ID_FIELD_NAME
+				+ " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final int res;
 		try {
@@ -233,35 +256,46 @@ public class User {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
-		assert (res == 1);
+		return res == 1;
 	}
 
-	public void setEmail(final String email) throws SQLException {
+	public synchronized boolean setEmail(final String email)
+			throws SQLException {
 		this.email = email;
-		final String sql = "update " + TABLE_NAME + " set " + EMAIL_FIELD_NAME + " = ? where " + ID_FIELD_NAME + " = ?;";
+		final String sql = "update " + TABLE_NAME + " set " + EMAIL_FIELD_NAME
+				+ " = ? where " + ID_FIELD_NAME + " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final int res;
 		try {
 			st.setString(1, email);
 			st.setLong(2, id);
-			res = st.executeUpdate();
+			try {
+				res = st.executeUpdate();
+			} catch (MySQLIntegrityConstraintViolationException s) {
+				return false;
+			}
 		} finally {
 			try {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
-		assert (res == 1);
+		return res == 1;
 	}
 
-	public void setPasswordHash(final String passwordHash) throws SQLException {
+	public synchronized boolean setPasswordHash(final String passwordHash)
+			throws SQLException {
 		this.passwordHash = passwordHash;
-		final String sql = "update " + TABLE_NAME + " set " + PASSWORD_HASH_FIELD_NAME + " = ? where " + ID_FIELD_NAME + " = ?;";
+		final String sql = "update " + TABLE_NAME + " set "
+				+ PASSWORD_HASH_FIELD_NAME + " = ? where " + ID_FIELD_NAME
+				+ " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final int res;
 		try {
@@ -273,42 +307,54 @@ public class User {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
-		assert (res == 1);
+		return res == 1;
 	}
 
-	public boolean setPermission(final Permission permission) throws SQLException {
+	public synchronized boolean setPermission(final Permission permission)
+			throws SQLException {
 		if (!permissions.add(permission))
 			return false;
 		syncPermissions();
 		return true;
 	}
 
-	public void setUserName(final String userName) throws SQLException {
+	public synchronized boolean setUserName(final String userName)
+			throws SQLException {
 		this.userName = userName;
-		final String sql = "update " + TABLE_NAME + " set " + USER_NAME_FIELD_NAME + " = ? where " + ID_FIELD_NAME + " = ?;";
+		final String sql = "update " + TABLE_NAME + " set "
+				+ USER_NAME_FIELD_NAME + " = ? where " + ID_FIELD_NAME
+				+ " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final int res;
 		try {
 			st.setString(1, userName);
 			st.setLong(2, id);
-			res = st.executeUpdate();
+			try {
+				res = st.executeUpdate();
+			} catch (MySQLIntegrityConstraintViolationException s) {
+				return false;
+			}
 		} finally {
 			try {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
-		assert (res == 1);
+		return res == 1;
 	}
 
-	private void syncPermissions() throws SQLException {
+	private synchronized void syncPermissions() throws SQLException {
 		final long permLong = Permission.toLong(permissions);
-		final String sql = "update " + TABLE_NAME + " set " + PERMISSION_LEVEL_FIELD_NAME + " = ? where " + ID_FIELD_NAME + " = ?;";
+		final String sql = "update " + TABLE_NAME + " set "
+				+ PERMISSION_LEVEL_FIELD_NAME + " = ? where " + ID_FIELD_NAME
+				+ " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final int res;
 		try {
@@ -320,7 +366,8 @@ public class User {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
 		assert (res == 1);

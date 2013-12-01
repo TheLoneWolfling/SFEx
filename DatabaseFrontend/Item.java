@@ -12,6 +12,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import com.mysql.jdbc.exceptions.MySQLIntegrityConstraintViolationException;
+
 public class Item {
 
 	private static final String BUY_NOW_PRICE_FIELD_NAME = "BuyNowPriceInCents";
@@ -23,15 +25,23 @@ public class Item {
 	private static final String SELLER_ID_FIELD_NAME = "SellerId";
 	private static final String SOLD_TO_USER_ID_FIELD_NAME = "BuyerId";
 	private static final String TABLE_NAME = "Items";
-	private static final String DESC_DOTTED = TABLE_NAME + "." + DESC_FIELD_NAME;
-	private static final String SELLER_ID_DOTTED = TABLE_NAME + "." + SELLER_ID_FIELD_NAME;
-	private static final String PRICE_DOTTED = TABLE_NAME + "." + PRICE_FIELD_NAME;
-	private static final String SOLD_TO_USER_ID_DOTTED = TABLE_NAME + "." + SOLD_TO_USER_ID_FIELD_NAME;
-	private static final String BUY_NOW_PRICE_DOTTED = TABLE_NAME + "." + BUY_NOW_PRICE_FIELD_NAME;
+	private static final String DESC_DOTTED = TABLE_NAME + "."
+			+ DESC_FIELD_NAME;
+	private static final String SELLER_ID_DOTTED = TABLE_NAME + "."
+			+ SELLER_ID_FIELD_NAME;
+	private static final String PRICE_DOTTED = TABLE_NAME + "."
+			+ PRICE_FIELD_NAME;
+	private static final String SOLD_TO_USER_ID_DOTTED = TABLE_NAME + "."
+			+ SOLD_TO_USER_ID_FIELD_NAME;
+	private static final String BUY_NOW_PRICE_DOTTED = TABLE_NAME + "."
+			+ BUY_NOW_PRICE_FIELD_NAME;
 	private static final String ID_DOTTED = TABLE_NAME + "." + ID_FIELD_NAME;
-	public static final String DOTTED_ROW_NAMES = ID_DOTTED + ", " + BUY_NOW_PRICE_DOTTED + ", " + SOLD_TO_USER_ID_DOTTED + ", " + PRICE_DOTTED + ", " + SELLER_ID_DOTTED + ", " + DESC_DOTTED;
+	public static final String DOTTED_ROW_NAMES = ID_DOTTED + ", "
+			+ BUY_NOW_PRICE_DOTTED + ", " + SOLD_TO_USER_ID_DOTTED + ", "
+			+ PRICE_DOTTED + ", " + SELLER_ID_DOTTED + ", " + DESC_DOTTED;
 
-	private static Item getItemFromCache(final ResultSet res) throws SQLException {
+	private static Item getItemFromCache(final ResultSet res)
+			throws SQLException {
 		final long itemID = res.getLong(ID_FIELD_NAME);
 		Item i = cache.get(itemID);
 		if (i == null)
@@ -40,7 +50,8 @@ public class Item {
 	}
 
 	public static Item getItemFromID(final long itemID) throws SQLException {
-		final String sql = "select * from " + TABLE_NAME + " where " + ID_FIELD_NAME + " = ?";
+		final String sql = "select * from " + TABLE_NAME + " where "
+				+ ID_FIELD_NAME + " = ?";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final Item i;
 		try {
@@ -54,34 +65,40 @@ public class Item {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
 		return i;
 	}
 
-	public static Set<Item> getItemsBy(final Set<Location> locations, final Set<Keyword> keywords, final Set<Category> categories, final long minPrice,
-			final long maxPrice, final Set<String> text) throws SQLException {
+	public static Set<Item> getItemsBy(final Set<Location> locations,
+			final Set<Keyword> keywords, final Set<Category> categories,
+			final long minPrice, final long maxPrice, final Set<String> text)
+			throws SQLException {
 		final List<String> searchTerms = new ArrayList<String>();
 
 		if (!locations.isEmpty()) {
 			final List<String> locationSearch = new ArrayList<String>();
 			for (final Location l : locations)
-				locationSearch.add("(" + ItemLocationMapping.LOCATION_ID_DOTTED + " = ?)");
+				locationSearch.add("(" + ItemLocationMapping.LOCATION_ID_DOTTED
+						+ " = ?)");
 			searchTerms.add("(" + join(locationSearch, "\n or ") + ")");
 		}
 
 		if (!keywords.isEmpty()) {
 			final List<String> keywordSearch = new ArrayList<String>();
 			for (final Keyword k : keywords)
-				keywordSearch.add("(" + ItemKeywordMapping.KEYWORD_ID_DOTTED + " = ?)");
+				keywordSearch.add("(" + ItemKeywordMapping.KEYWORD_ID_DOTTED
+						+ " = ?)");
 			searchTerms.add("(" + join(keywordSearch, "\n or ") + ")");
 		}
 
 		if (!categories.isEmpty()) {
 			final List<String> categorySearch = new ArrayList<String>();
 			for (final Category c : categories)
-				categorySearch.add("(" + ItemCategoryMapping.CATEGORY_ID_DOTTED + " = ?)");
+				categorySearch.add("(" + ItemCategoryMapping.CATEGORY_ID_DOTTED
+						+ " = ?)");
 			searchTerms.add("(" + join(categorySearch, "\n or ") + ")");
 		}
 
@@ -96,9 +113,15 @@ public class Item {
 
 		final String search = join(searchTerms, "\n and ");
 
-		final String joins = TABLE_NAME + " join " + ItemLocationMapping.TABLE_NAME + " on " + ItemLocationMapping.ITEM_ID_DOTTED + "=" + ID_DOTTED + " join " + ItemKeywordMapping.TABLE_NAME + " on " + ItemKeywordMapping.ITEM_ID_DOTTED + "=" + ID_DOTTED + " join "
-				+ ItemCategoryMapping.TABLE_NAME + " on " + ItemCategoryMapping.ITEM_ID_DOTTED + "=" + ID_DOTTED;
-		final String sql = "select " + DOTTED_ROW_NAMES + "\n from " + joins + "\n where " + search + ";";
+		final String joins = TABLE_NAME + " join "
+				+ ItemLocationMapping.TABLE_NAME + " on "
+				+ ItemLocationMapping.ITEM_ID_DOTTED + "=" + ID_DOTTED
+				+ " join " + ItemKeywordMapping.TABLE_NAME + " on "
+				+ ItemKeywordMapping.ITEM_ID_DOTTED + "=" + ID_DOTTED
+				+ " join " + ItemCategoryMapping.TABLE_NAME + " on "
+				+ ItemCategoryMapping.ITEM_ID_DOTTED + "=" + ID_DOTTED;
+		final String sql = "select " + DOTTED_ROW_NAMES + "\n from " + joins
+				+ "\n where " + search + ";";
 		System.out.println(sql);
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		int i = 1;
@@ -122,22 +145,18 @@ public class Item {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
-		}
-		for (Item it : items) {
-			assert(locations.isEmpty() || !Collections.disjoint(locations, it.getLocation()));
-			assert(keywords.isEmpty() || !Collections.disjoint(keywords, it.getKeywords()));
-			assert(categories.isEmpty() || !Collections.disjoint(categories, it.getCategory()));
-			assert(it.currentPrice >= minPrice);
-			assert(it.currentPrice <= maxPrice);
-			// Cannot check for full text search...
 		}
 		return items;
 	}
 
-	protected static Set<Item> getItemsByCategory(final Category category) throws SQLException {
-		final String sql = "select * from " + ItemCategoryMapping.TABLE_NAME + " where " + ItemCategoryMapping.CATEGORY_ID_FIELD_NAME + " = ?";
+	protected static Set<Item> getItemsByCategory(final Category category)
+			throws SQLException {
+		final String sql = "select * from " + ItemCategoryMapping.TABLE_NAME
+				+ " where " + ItemCategoryMapping.CATEGORY_ID_FIELD_NAME
+				+ " = ?";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final Set<Item> items = new HashSet<Item>();
 		try {
@@ -150,15 +169,18 @@ public class Item {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
 		return items;
 	}
 
-	public static Set<Item> getItemsByKeyword(final Keyword keyword) throws SQLException {
+	public static Set<Item> getItemsByKeyword(final Keyword keyword)
+			throws SQLException {
 
-		final String sql = "select * from " + ItemKeywordMapping.TABLE_NAME + " where " + ItemKeywordMapping.KEYWORD_ID_FIELD_NAME + " = ?";
+		final String sql = "select * from " + ItemKeywordMapping.TABLE_NAME
+				+ " where " + ItemKeywordMapping.KEYWORD_ID_FIELD_NAME + " = ?";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final Set<Item> items = new HashSet<Item>();
 		try {
@@ -171,14 +193,18 @@ public class Item {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
 		return items;
 	}
 
-	public static Set<Item> getItemsByLocation(final Location location) throws SQLException {
-		final String sql = "select * from " + ItemLocationMapping.TABLE_NAME + " where " + ItemLocationMapping.LOCATION_ID_FIELD_NAME + " = ?";
+	public static Set<Item> getItemsByLocation(final Location location)
+			throws SQLException {
+		final String sql = "select * from " + ItemLocationMapping.TABLE_NAME
+				+ " where " + ItemLocationMapping.LOCATION_ID_FIELD_NAME
+				+ " = ?";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final Set<Item> items = new HashSet<Item>();
 		try {
@@ -191,14 +217,17 @@ public class Item {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
 		return items;
 	}
 
-	public static Set<Item> getItemsByPrice(final long minPrice, final long maxPrice) throws SQLException {
-		final String sql = "select * from " + ItemCategoryMapping.TABLE_NAME + " where " + PRICE_FIELD_NAME + " between ? and ?;";
+	public static Set<Item> getItemsByPrice(final long minPrice,
+			final long maxPrice) throws SQLException {
+		final String sql = "select * from " + ItemCategoryMapping.TABLE_NAME
+				+ " where " + PRICE_FIELD_NAME + " between ? and ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final Set<Item> items = new HashSet<Item>();
 		try {
@@ -212,14 +241,17 @@ public class Item {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
 		return items;
 	}
 
-	protected static Set<Item> getItemsByUserSelling(final User user) throws SQLException {
-		final String sql = "select * from " + TABLE_NAME + " where " + SELLER_ID_FIELD_NAME + " = ?";
+	protected static Set<Item> getItemsByUserSelling(final User user)
+			throws SQLException {
+		final String sql = "select * from " + TABLE_NAME + " where "
+				+ SELLER_ID_FIELD_NAME + " = ?";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final Set<Item> items = new HashSet<Item>();
 		try {
@@ -232,7 +264,8 @@ public class Item {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
 		return items;
@@ -248,22 +281,32 @@ public class Item {
 		return builder.toString();
 	}
 
-	public static Item makeItem(final long buyNowPriceInCents, final long currentPrice, final User seller, final String description) throws SQLException {
-		final String sql = "insert into " + TABLE_NAME + " (" + BUY_NOW_PRICE_FIELD_NAME + ", " + PRICE_FIELD_NAME + ", "
-				+ SELLER_ID_FIELD_NAME + ", " + DESC_FIELD_NAME + ") values (?, ?, ?, ?);";
-		final PreparedStatement st = DataManager.getCon().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-		st.setQueryTimeout(5);
+	public static Item makeItem(final long buyNowPriceInCents,
+			final long currentPrice, final User seller, final String description)
+			throws SQLException {
+		final String sql = "insert into " + TABLE_NAME + " ("
+				+ BUY_NOW_PRICE_FIELD_NAME + ", " + PRICE_FIELD_NAME + ", "
+				+ SELLER_ID_FIELD_NAME + ", " + DESC_FIELD_NAME
+				+ ") values (?, ?, ?, ?);";
+		final PreparedStatement st = DataManager.getCon().prepareStatement(sql,
+				Statement.RETURN_GENERATED_KEYS);
 		final long itemId;
 		try {
 			st.setLong(1, buyNowPriceInCents);
 			st.setLong(2, currentPrice);
 			st.setLong(3, seller.getID());
 			st.setString(4, description);
-			final int res = st.executeUpdate();
-			assert (res == 1);
+			try {
+				final int res = st.executeUpdate();
+				if (res != 1)
+					return null;
+			} catch (MySQLIntegrityConstraintViolationException s) {
+				return null;
+			}
 			final ResultSet rs = st.getGeneratedKeys();
 			if (!rs.next())
-				throw new SQLException("Internal error: No key returned for generated item");
+				throw new SQLException(
+						"Internal error: No key returned for generated item");
 			itemId = rs.getLong(1);
 		} finally {
 			try {
@@ -271,14 +314,11 @@ public class Item {
 					st.close();
 				}
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
 		final Item item = getItemFromID(itemId);
-		assert (item.buyNowPriceInCents == buyNowPriceInCents);
-		assert (item.currentPrice == currentPrice);
-		assert (item.sellerID == seller.getID());
-		assert (item.description.equals(description));
 		return item;
 	}
 
@@ -298,8 +338,9 @@ public class Item {
 		description = res.getString(DESC_FIELD_NAME);
 	}
 
-	public void deleteItem() throws SQLException {
-		final String sql = "delete from " + TABLE_NAME + " where " + ID_FIELD_NAME + " = ?";
+	public boolean deleteItem() throws SQLException {
+		final String sql = "delete from " + TABLE_NAME + " where "
+				+ ID_FIELD_NAME + " = ?";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final int res;
 		try {
@@ -310,11 +351,11 @@ public class Item {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
-		assert (res == 1);
-		cache.remove(id);
+		return res == 1;
 	}
 
 	public Set<Bid> getBids() throws SQLException {
@@ -355,9 +396,12 @@ public class Item {
 		return User.getUserFromID(soldToUserID);
 	}
 
-	public void setBuyNowPriceInCents(final long buyNowPriceInCents) throws SQLException {
+	public boolean setBuyNowPriceInCents(final long buyNowPriceInCents)
+			throws SQLException {
 		this.buyNowPriceInCents = buyNowPriceInCents;
-		final String sql = "update " + TABLE_NAME + " set " + BUY_NOW_PRICE_FIELD_NAME + " = ? where " + ID_FIELD_NAME + " = ?;";
+		final String sql = "update " + TABLE_NAME + " set "
+				+ BUY_NOW_PRICE_FIELD_NAME + " = ? where " + ID_FIELD_NAME
+				+ " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final int res;
 		try {
@@ -369,15 +413,17 @@ public class Item {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
-		assert (res == 1);
+		return res == 1;
 	}
 
-	public void setDescription(final String description) throws SQLException {
+	public boolean setDescription(final String description) throws SQLException {
 		this.description = description;
-		final String sql = "update " + TABLE_NAME + " set " + DESC_FIELD_NAME + " = ? where " + ID_FIELD_NAME + " = ?;";
+		final String sql = "update " + TABLE_NAME + " set " + DESC_FIELD_NAME
+				+ " = ? where " + ID_FIELD_NAME + " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final int res;
 		try {
@@ -389,15 +435,18 @@ public class Item {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
-		assert (res == 1);
+		return res == 1;
 	}
 
-	public void setSoldToUser(final User user) throws SQLException {
+	public boolean setSoldToUser(final User user) throws SQLException {
 		soldToUserID = user.getID();
-		final String sql = "update " + TABLE_NAME + " set " + SOLD_TO_USER_ID_FIELD_NAME + " = ? where " + ID_FIELD_NAME + " = ?;";
+		final String sql = "update " + TABLE_NAME + " set "
+				+ SOLD_TO_USER_ID_FIELD_NAME + " = ? where " + ID_FIELD_NAME
+				+ " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final int res;
 		try {
@@ -409,15 +458,17 @@ public class Item {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
-		assert (res == 1);
+		return res == 1;
 	}
 
-	public void setCurrentPriceInCents(long price) throws SQLException {
+	public boolean setCurrentPriceInCents(long price) throws SQLException {
 		currentPrice = price;
-		final String sql = "update " + TABLE_NAME + " set " + PRICE_FIELD_NAME + " = ? where " + ID_FIELD_NAME + " = ?;";
+		final String sql = "update " + TABLE_NAME + " set " + PRICE_FIELD_NAME
+				+ " = ? where " + ID_FIELD_NAME + " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final int res;
 		try {
@@ -429,16 +480,20 @@ public class Item {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
-		assert res == 1 : res;
+		return res == 1;
 	}
 
 	@Override
 	public String toString() {
-		return "Item [buyNowPriceInCents=" + buyNowPriceInCents + ", currentPrice=" + currentPrice + ", description=" + description + ", id=" + id
-				+ ", sellerID=" + sellerID + ", soldToUserID=" + soldToUserID + " addr=" + super.toString().split("@")[1] + "]";
+		return "Item [buyNowPriceInCents=" + buyNowPriceInCents
+				+ ", currentPrice=" + currentPrice + ", description="
+				+ description + ", id=" + id + ", sellerID=" + sellerID
+				+ ", soldToUserID=" + soldToUserID + " addr="
+				+ super.toString().split("@")[1] + "]";
 	}
 
 	public void addKeyword(Keyword k) throws SQLException {

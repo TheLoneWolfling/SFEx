@@ -10,6 +10,8 @@ import java.sql.Statement;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.mysql.jdbc.exceptions.MySQLIntegrityConstraintViolationException;
+
 public class Location {
 
 	private static final int INVALID_PARENT = 0;
@@ -21,8 +23,10 @@ public class Location {
 	private static final String PARENT_ID_FIELD_NAME = "ParentId";
 	private static final int ROOT_LEVEL = 0;
 
-	protected static Location getLocationByID(final long id) throws SQLException {
-		final String sql = "select * from " + LOCATION_TABLE_NAME + " where " + ID_FIELD_NAME + " = ?;";
+	protected static Location getLocationByID(final long id)
+			throws SQLException {
+		final String sql = "select * from " + LOCATION_TABLE_NAME + " where "
+				+ ID_FIELD_NAME + " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final Location l;
 		try {
@@ -30,22 +34,23 @@ public class Location {
 			final ResultSet res = st.executeQuery();
 			if (!res.next())
 				return null;
-			assert (res.getLong(ID_FIELD_NAME) == id);
 			l = getLocationFromCache(res);
 		} finally {
 			try {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
-		assert(l.id == id);
 		return l;
 	}
 
-	public static Location getLocationByName(final String name) throws SQLException {
-		final String sql = "select * from " + LOCATION_TABLE_NAME + " where " + NAME_FIELD_NAME + " = ?;";
+	public static Location getLocationByName(final String name)
+			throws SQLException {
+		final String sql = "select * from " + LOCATION_TABLE_NAME + " where "
+				+ NAME_FIELD_NAME + " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final Location l;
 		try {
@@ -53,42 +58,45 @@ public class Location {
 			final ResultSet res = st.executeQuery();
 			if (!res.next())
 				return null;
-			assert (res.getString("name").equals(name));
 			l = getLocationFromCache(res);
 		} finally {
 			try {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
-		assert(l.name.equals(name));
 		return l;
 	}
 
-	public static Set<Location> getLocationForItem(final Item item) throws SQLException {
-		final String sql = "select * from " + ItemLocationMapping.TABLE_NAME + " where " + ItemLocationMapping.ITEM_ID_FIELD_NAME + " = ?;";
+	public static Set<Location> getLocationForItem(final Item item)
+			throws SQLException {
+		final String sql = "select * from " + ItemLocationMapping.TABLE_NAME
+				+ " where " + ItemLocationMapping.ITEM_ID_FIELD_NAME + " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final Set<Location> toRet = new HashSet<Location>();
 		try {
 			st.setLong(1, item.getID());
 			final ResultSet res = st.executeQuery();
-			while(res.next())
-				toRet.add(getLocationByID(res.getLong(ItemLocationMapping.LOCATION_ID_FIELD_NAME)));
+			while (res.next())
+				toRet.add(getLocationByID(res
+						.getLong(ItemLocationMapping.LOCATION_ID_FIELD_NAME)));
 		} finally {
 			try {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
-		//Cannot really test if returned values are correct...
 		return toRet;
 	}
 
-	private static Location getLocationFromCache(final ResultSet res) throws SQLException {
+	private static Location getLocationFromCache(final ResultSet res)
+			throws SQLException {
 		final long LocationID = res.getLong(ID_FIELD_NAME);
 		Location u = locationCache.get(LocationID);
 		if (u == null)
@@ -96,39 +104,45 @@ public class Location {
 		return u;
 	}
 
-	public static Location makeLocation(final String name, final Location parent) throws SQLException {
-		final String sql = "insert into " + LOCATION_TABLE_NAME + " (" + NAME_FIELD_NAME + ", " + PARENT_ID_FIELD_NAME + ", " + LEVEL_FIELD_NAME
-				+ ") values (?, ?, ?);";
-		final PreparedStatement st = DataManager.getCon().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+	public static Location makeLocation(final String name, final Location parent)
+			throws SQLException {
+		final String sql = "insert into " + LOCATION_TABLE_NAME + " ("
+				+ NAME_FIELD_NAME + ", " + PARENT_ID_FIELD_NAME + ", "
+				+ LEVEL_FIELD_NAME + ") values (?, ?, ?);";
+		final PreparedStatement st = DataManager.getCon().prepareStatement(sql,
+				Statement.RETURN_GENERATED_KEYS);
 		final long locationId;
 		try {
 			st.setString(1, name);
-			if (parent == null) 
-			{
+			if (parent == null) {
 				st.setLong(2, INVALID_PARENT);
 				st.setInt(3, ROOT_LEVEL);
-			}else {
+			} else {
 				st.setLong(2, parent.id);
 				st.setLong(3, parent.level + 1);
 			}
-			final int res = st.executeUpdate();
-			assert (res == 1);
+			try {
+				final int res = st.executeUpdate();
+				if (res != 1)
+					return null;
+			} catch (MySQLIntegrityConstraintViolationException s) {
+				return null;
+			}
 			final ResultSet rs = st.getGeneratedKeys();
 			if (!rs.next())
-				throw new SQLException("Internal error: No key returned for generated location");
+				throw new SQLException(
+						"Internal error: No key returned for generated location");
 			locationId = rs.getLong(1);
 		} finally {
 			try {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
 		final Location toRet = getLocationByID(locationId);
-		assert (toRet.name.equals(name));
-		assert ((parent != null && toRet.parentID == parent.id) ||
-				(parent == null && toRet.parentID == INVALID_PARENT));
 		return toRet;
 	}
 
@@ -144,9 +158,10 @@ public class Location {
 		level = res.getInt(LEVEL_FIELD_NAME);
 	}
 
-	public void deleteLocation() throws SQLException {
-		assert(getChildLocations().isEmpty());
-		final String sql = "delete from " + LOCATION_TABLE_NAME + " where " + ID_FIELD_NAME + " = ?";
+	public boolean deleteLocation() throws SQLException {
+		assert (getChildLocations().isEmpty());
+		final String sql = "delete from " + LOCATION_TABLE_NAME + " where "
+				+ ID_FIELD_NAME + " = ?";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final int res;
 		try {
@@ -157,15 +172,16 @@ public class Location {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
-		assert (res == 1);
-		locationCache.remove(id);
+		return res == 1;
 	}
 
 	public Set<Location> getChildLocations() throws SQLException {
-		final String sql = "select * from " + LOCATION_TABLE_NAME + " where " + PARENT_ID_FIELD_NAME + " = ?;";
+		final String sql = "select * from " + LOCATION_TABLE_NAME + " where "
+				+ PARENT_ID_FIELD_NAME + " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final Set<Location> locations = new HashSet<Location>();
 		try {
@@ -178,11 +194,10 @@ public class Location {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
-		for (Location l : locations)
-			assert(l.parentID == id);
 		return locations;
 	}
 
@@ -207,7 +222,8 @@ public class Location {
 	}
 
 	public Set<Location> getTopLevelLocations() throws SQLException {
-		final String sql = "select * from " + LOCATION_TABLE_NAME + " where " + LEVEL_FIELD_NAME + " = ?;";
+		final String sql = "select * from " + LOCATION_TABLE_NAME + " where "
+				+ LEVEL_FIELD_NAME + " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final Set<Location> locations = new HashSet<Location>();
 		try {
@@ -220,17 +236,17 @@ public class Location {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
-		for (Location l : locations)
-			assert(l.parentID == INVALID_PARENT);
 		return locations;
 	}
 
-	public void setName(final String name) throws SQLException {
+	public boolean setName(final String name) throws SQLException {
 		this.name = name;
-		final String sql = "update " + LOCATION_TABLE_NAME + " set " + NAME_FIELD_NAME + " = ? where " + ID_FIELD_NAME + " = ?;";
+		final String sql = "update " + LOCATION_TABLE_NAME + " set "
+				+ NAME_FIELD_NAME + " = ? where " + ID_FIELD_NAME + " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final int res;
 		try {
@@ -242,14 +258,17 @@ public class Location {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
-		assert (res == 1);
+		return res == 1;
 	}
 
 	@Override
 	public String toString() {
-		return "Location [id=" + id + ", level=" + level + ", name=" + name + ", parentID=" + parentID + " inst=" + super.toString().split("@")[1] + "]";
+		return "Location [id=" + id + ", level=" + level + ", name=" + name
+				+ ", parentID=" + parentID + " inst="
+				+ super.toString().split("@")[1] + "]";
 	}
 }

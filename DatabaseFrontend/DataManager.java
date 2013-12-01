@@ -14,6 +14,7 @@ public class DataManager {
 	}
 	private static final ConnectionCache cache = new ConnectionCache();
 	public static DataManager INSTANCE;
+
 	public static DataManager getINSTANCE() {
 		return INSTANCE;
 	}
@@ -27,8 +28,11 @@ public class DataManager {
 			i = cache.getOrPut(thisThread, makeCon());
 		return i;
 	}
-	
+
 	private static Connection makeCon() throws SQLException {
-		return DriverManager.getConnection("jdbc:mysql://isel.cs.unb.ca:3306/cs2043team16DB?jdbcCompliantTruncation=false", "cs2043team16", "cs2043team16");
+		return DriverManager
+				.getConnection(
+						"jdbc:mysql://isel.cs.unb.ca:3306/cs2043team16DB?jdbcCompliantTruncation=false",
+						"cs2043team16", "cs2043team16");
 	}
 }

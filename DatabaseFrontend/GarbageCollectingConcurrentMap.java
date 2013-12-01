@@ -19,7 +19,8 @@ public class GarbageCollectingConcurrentMap<K, V> {
 		public void run() {
 			while (true)
 				try {
-					GarbageReference<K, ?> ref = (GarbageReference<K, V>) referenceQueue.remove();
+					GarbageReference<K, ?> ref = (GarbageReference<K, V>) referenceQueue
+							.remove();
 					while (true) {
 						ref.map.remove(ref.key);
 						ref = (GarbageReference<K, ?>) referenceQueue.remove();
@@ -34,7 +35,8 @@ public class GarbageCollectingConcurrentMap<K, V> {
 		final K key;
 		final ConcurrentMap<K, V> map;
 
-		GarbageReference(final K key, final V value, final ConcurrentMap<K, V> map) {
+		GarbageReference(final K key, final V value,
+				final ConcurrentMap<K, V> map) {
 			super(value, referenceQueue);
 			this.key = key;
 			this.map = map;
@@ -61,7 +63,8 @@ public class GarbageCollectingConcurrentMap<K, V> {
 	public V getOrPut(final K key, final V value) {
 		if (key == null || value == null)
 			throw new NullPointerException();
-		final GarbageReference<K, V> reference = new GarbageReference(key, value, map);
+		final GarbageReference<K, V> reference = new GarbageReference(key,
+				value, map);
 		final GarbageReference<K, V> old = map.putIfAbsent(key, reference);
 		if (old != null) {
 			final V temp = old.get();
@@ -78,11 +81,8 @@ public class GarbageCollectingConcurrentMap<K, V> {
 	public void put(final K key, final V value) {
 		if (key == null || value == null)
 			throw new NullPointerException();
-		final GarbageReference<K, V> reference = new GarbageReference(key, value, map);
+		final GarbageReference<K, V> reference = new GarbageReference(key,
+				value, map);
 		map.put(key, reference);
-	}
-
-	public void remove(final long id) {
-		map.remove(map.get(id));
 	}
 }

@@ -6,6 +6,8 @@ import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.mysql.jdbc.exceptions.MySQLIntegrityConstraintViolationException;
+
 public class Bid {
 	private static GarbageCollectingConcurrentMap<Long, Bid> bidCache = new GarbageCollectingConcurrentMap<Long, Bid>();
 	private static final String ID_FIELD_NAME = "Id";
@@ -23,7 +25,8 @@ public class Bid {
 	}
 
 	public static Bid getBidFromId(final long id) throws SQLException {
-		final String sql = "select * from " + TABLE_NAME + " where " + ID_FIELD_NAME + " = ?";
+		final String sql = "select * from " + TABLE_NAME + " where "
+				+ ID_FIELD_NAME + " = ?";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final Bid bid;
 		try {
@@ -37,16 +40,17 @@ public class Bid {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
-		assert(bid.id == id);
 		return bid;
 	}
 
 	public static Set<Bid> getBidsByItem(final Item item) throws SQLException {
-		assert(item != null);
-		final String sql = "select * from " + TABLE_NAME + " where " + ITEM_ID_FIELD_NAME + " = ?";
+		assert (item != null);
+		final String sql = "select * from " + TABLE_NAME + " where "
+				+ ITEM_ID_FIELD_NAME + " = ?";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final Set<Bid> bids = new HashSet<Bid>();
 		try {
@@ -59,17 +63,17 @@ public class Bid {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
-		for (Bid b : bids)
-			assert(b.itemID == item.getID());
 		return bids;
 	}
 
 	public static Set<Bid> getBidsByUser(final User user) throws SQLException {
-		assert(user != null);
-		final String sql = "select * from " + TABLE_NAME + " where " + USER_ID_FIELD_NAME + " = ?";
+		assert (user != null);
+		final String sql = "select * from " + TABLE_NAME + " where "
+				+ USER_ID_FIELD_NAME + " = ?";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final Set<Bid> bids = new HashSet<Bid>();
 		try {
@@ -82,20 +86,21 @@ public class Bid {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
-		for (Bid b : bids)
-			assert(b.userID == user.getID());
 		return bids;
 	}
 
-	public static Bid makeBid(final User user, final Item item, final long priceInCents) throws SQLException {
-		assert(user != null);
-		assert(item != null);
-		assert(priceInCents >= 0); // Not needed, but w/e
-		final String sql = "insert into " + TABLE_NAME + " (" + USER_ID_FIELD_NAME + ", " + ITEM_ID_FIELD_NAME + ", " + PRICE_FIELD_NAME
-				+ ") values (?, ?, ?);";
+	public static Bid makeBid(final User user, final Item item,
+			final long priceInCents) throws SQLException {
+		assert (user != null);
+		assert (item != null);
+		assert (priceInCents >= 0); // Not needed, but w/e
+		final String sql = "insert into " + TABLE_NAME + " ("
+				+ USER_ID_FIELD_NAME + ", " + ITEM_ID_FIELD_NAME + ", "
+				+ PRICE_FIELD_NAME + ") values (?, ?, ?);";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final long bidId;
 		final int res;
@@ -103,24 +108,28 @@ public class Bid {
 			st.setLong(1, user.getID());
 			st.setLong(2, item.getID());
 			st.setLong(3, priceInCents);
-			res = st.executeUpdate();
+			try {
+				res = st.executeUpdate();
+			} catch (MySQLIntegrityConstraintViolationException s) {
+				return null;
+			}
 			final ResultSet rs = st.getGeneratedKeys();
 			if (!rs.next())
-				throw new SQLException("Internal error: No key returned for generated category");
+				throw new SQLException(
+						"Internal error: No key returned for generated category");
 			bidId = rs.getLong(1);
 		} finally {
 			try {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
-		assert (res == 1);
+		if (res != 1)
+			return null;
 		final Bid bid = getBidFromId(bidId);
-		assert (bid.userID == user.getID());
-		assert (bid.itemID == item.getID());
-		assert (bid.priceInCents == priceInCents);
 		return bid;
 	}
 
@@ -136,8 +145,9 @@ public class Bid {
 		priceInCents = res.getLong(PRICE_FIELD_NAME);
 	}
 
-	public void deleteBid() throws SQLException {
-		final String sql = "delete from " + TABLE_NAME + " where " + ID_FIELD_NAME + " = ?";
+	public boolean deleteBid() throws SQLException {
+		final String sql = "delete from " + TABLE_NAME + " where "
+				+ ID_FIELD_NAME + " = ?";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final int res;
 		try {
@@ -148,11 +158,11 @@ public class Bid {
 				if (st != null)
 					st.close();
 			} catch (final SQLException e) {
-				System.out.println("Error closing prepared statement : " + e.getMessage());
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
 			}
 		}
-		assert res == 1 : res + " " + id;
-		bidCache.remove(id);
+		return res == 1;
 	}
 
 	public Item getItem() throws SQLException {
@@ -169,7 +179,9 @@ public class Bid {
 
 	@Override
 	public String toString() {
-		return "Bid [id=" + id + ", itemID=" + itemID + ", priceInCents=" + priceInCents + ", userID=" + userID + " addr=" + super.toString().split("@")[1] + "]";
+		return "Bid [id=" + id + ", itemID=" + itemID + ", priceInCents="
+				+ priceInCents + ", userID=" + userID + " addr="
+				+ super.toString().split("@")[1] + "]";
 	}
 
 	public long getId() {

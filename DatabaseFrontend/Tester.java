@@ -4,16 +4,75 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.EnumSet;
 
+import com.mysql.jdbc.exceptions.MySQLIntegrityConstraintViolationException;
+
 import ApplicationLogic.AccountControl;
 
 public class Tester {
 
-	public static void main(String[] args) throws SQLException {		
+	public static void main(String[] args) throws SQLException {
 		final String salt = AccountControl.makeSalt();
-		final EnumSet<Permission> allpermissions = EnumSet.allOf(Permission.class);
+		final EnumSet<Permission> allpermissions = EnumSet
+				.allOf(Permission.class);
+		for (int i = 0; i < 10; i++) {
+			final int j = i;
+			new Thread() {
+
+				public void run() {
+					int k = j;
+					final String salt = AccountControl.makeSalt();
+					final EnumSet<Permission> allpermissions = EnumSet
+							.allOf(Permission.class);
+					User u = null;
+					try {
+						u = User.makeUser("e@mail.address" + k, "userName" + k,
+								"contact information" + k,
+								AccountControl.hash("abcd", salt),
+								allpermissions, salt);
+						User v = null;
+						do {
+							try {
+								v = User.getUserFromEmail("e@mail.address"
+										+ (k + 1) % 10);
+							} catch (SQLException s) {
+								try {
+									Thread.sleep(100);
+								} catch (InterruptedException i) {
+
+								}
+							}
+						} while (v == null);
+
+						System.out.println(k + ": " + u);
+						for (int i = 0; i < 1000; i++) {
+							u.setEmail(i + ":" + k);
+							v.setEmail(i + ":2:" + k);
+							u.setContactInfo(i + ":" + k);
+							v.setContactInfo(i + ":2:" + k);
+							u.setPasswordHash(i + ":" + k);
+							v.setPasswordHash(i + ":2:" + k);
+							u.setUserName(i + ":" + k);
+							v.setUserName(i + ":2:" + k);
+						}
+						System.out.println(k + ": " + u);
+					} catch (SQLException e) {
+						e.printStackTrace();
+					} finally {
+						if (u != null)
+							try {
+								u.deleteUser();
+							} catch (SQLException e) {
+								e.printStackTrace();
+							}
+					}
+				}
+			}.start();
+		}
 		User u = null;
 		try {
-			u = User.makeUser("e@mail.address", "userName", "contact information", AccountControl.hash("abcd", salt), allpermissions, salt);
+			u = User.makeUser("e@mail.address", "userName",
+					"contact information", AccountControl.hash("abcd", salt),
+					allpermissions, salt);
 			System.out.println(u);
 			System.out.println(User.getUserFromEmail(u.getEmail()));
 			System.out.println(User.getUserFromID(u.getID()));
@@ -30,13 +89,15 @@ public class Tester {
 
 			u.setUserName("nUserName");
 			System.out.println(u);
-			
+
 			User v = null;
 			try {
-				v = User.makeUser("e@mail.address2", "userName2", "contact information2", AccountControl.hash("abcd", salt), allpermissions, salt);
+				v = User.makeUser("e@mail.address2", "userName2",
+						"contact information2",
+						AccountControl.hash("abcd", salt), allpermissions, salt);
 				System.out.println(v);
 				Item i = null;
-				
+
 				try {
 					i = Item.makeItem(100, 50, u, "ItemDescription");
 					System.out.println(i);
@@ -78,7 +139,8 @@ public class Tester {
 						c = Category.makeCategory("Category", null, "Desc");
 						System.out.println(c);
 						System.out.println(Category.getCategoryByID(c.getID()));
-						System.out.println(Category.getCategoryByName("Category"));
+						System.out.println(Category
+								.getCategoryByName("Category"));
 						i.addCategory(c);
 						System.out.println(i.getCategory());
 						System.out.println(Category.getTopLevelCategories());
@@ -89,7 +151,8 @@ public class Tester {
 							System.out.println(d.getParent());
 							i.addCategory(d);
 							System.out.println(i.getCategory());
-							System.out.println(Category.getTopLevelCategories());
+							System.out
+									.println(Category.getTopLevelCategories());
 						} finally {
 							if (d != null)
 								d.deleteCategory();
@@ -103,7 +166,8 @@ public class Tester {
 						l = Location.makeLocation("Location", null);
 						System.out.println(l);
 						System.out.println(Location.getLocationByID(l.getID()));
-						System.out.println(Location.getLocationByName("Location"));
+						System.out.println(Location
+								.getLocationByName("Location"));
 						i.addLocation(l);
 						System.out.println(i.getLocation());
 						Location m = null;
@@ -114,7 +178,11 @@ public class Tester {
 							System.out.println(i.getLocation());
 							System.out.println(l.getChildLocations());
 							System.out.println(m.getChildLocations());
-							System.out.println(new ResultSet(Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET, 0, 10000, Collections.EMPTY_SET).getItems());
+							System.out.println(new ResultSet(
+									Collections.EMPTY_SET,
+									Collections.EMPTY_SET,
+									Collections.EMPTY_SET, 0, 10000,
+									Collections.EMPTY_SET).getItems());
 						} finally {
 							if (m != null)
 								m.deleteLocation();
@@ -123,7 +191,7 @@ public class Tester {
 						if (l != null)
 							l.deleteLocation();
 					}
-					
+
 				} finally {
 					if (i != null)
 						i.deleteItem();
