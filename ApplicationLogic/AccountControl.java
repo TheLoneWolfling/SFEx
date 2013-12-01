@@ -17,20 +17,22 @@ import javax.xml.bind.DatatypeConverter;
 import DatabaseFrontend.Permission;
 
 public class AccountControl {
-	/** 
-	 * <!-- begin-UML-doc -->
-	 * <!-- end-UML-doc -->
-	 * @generated "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
+	/**
+	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
+	 * 
+	 * @generated 
+	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
 	 */
-	//private DeleteAccount deleteAccount;
-	/** 
-	 * <!-- begin-UML-doc -->
-	 * <!-- end-UML-doc -->
-	 * @generated "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
+	// private DeleteAccount deleteAccount;
+	/**
+	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
+	 * 
+	 * @generated 
+	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
 	 */
-	//private DeleteOtherAccount deleteOtherAccount;
-	//private DeleteAccount deleteAccount;
-	//private DeleteOtherAccount deleteOtherAccount;
+	// private DeleteOtherAccount deleteOtherAccount;
+	// private DeleteAccount deleteAccount;
+	// private DeleteOtherAccount deleteOtherAccount;
 	private UserWrapper userWrapper;
 	private static SecureRandom r = new SecureRandom();
 
@@ -42,13 +44,14 @@ public class AccountControl {
 		// end-user-code
 	}
 
-	/** 
-	 * <!-- begin-UML-doc -->
-	 * <!-- end-UML-doc -->
+	/**
+	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
+	 * 
 	 * @param email
 	 * @param password
 	 * @return
-	 * @generated "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
+	 * @generated 
+	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
 	 */
 	public Boolean tryLogin(String email, String password) {
 		// begin-user-code
@@ -57,11 +60,12 @@ public class AccountControl {
 		// end-user-code
 	}
 
-	/** 
-	 * <!-- begin-UML-doc -->
-	 * <!-- end-UML-doc -->
+	/**
+	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
+	 * 
 	 * @return
-	 * @generated "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
+	 * @generated 
+	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
 	 */
 	public Object logOut() {
 		// begin-user-code
@@ -70,11 +74,12 @@ public class AccountControl {
 		// end-user-code
 	}
 
-	/** 
-	 * <!-- begin-UML-doc -->
-	 * <!-- end-UML-doc -->
+	/**
+	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
+	 * 
 	 * @return
-	 * @generated "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
+	 * @generated 
+	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
 	 */
 	public Boolean isLoggedIn() {
 		// begin-user-code
@@ -83,10 +88,11 @@ public class AccountControl {
 		// end-user-code
 	}
 
-	/** 
-	 * <!-- begin-UML-doc -->
-	 * <!-- end-UML-doc -->
-	 * @generated "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
+	/**
+	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
+	 * 
+	 * @generated 
+	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
 	 */
 	public static UserWrapper getLoggedInUser() {
 		// begin-user-code
@@ -95,10 +101,11 @@ public class AccountControl {
 		// end-user-code
 	}
 
-	/** 
-	 * <!-- begin-UML-doc -->
-	 * <!-- end-UML-doc -->
-	 * @generated "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
+	/**
+	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
+	 * 
+	 * @generated 
+	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
 	 */
 	public void getOtherUser() {
 		// begin-user-code
@@ -130,7 +137,7 @@ public class AccountControl {
 		}
 		return DatatypeConverter.printBase64Binary(key.getEncoded());
 	}
-	
+
 	public static String makeSalt() {
 		final byte[] saltBytes = new byte[512 / 8];
 		r.nextBytes(saltBytes);

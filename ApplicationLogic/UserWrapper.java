@@ -99,11 +99,12 @@ public class UserWrapper {
 		user.setPassword(AccountControl.hash(password, user.getSalt()));
 	}
 
-	/** 
-	 * <!-- begin-UML-doc -->
-	 * <!-- end-UML-doc -->
+	/**
+	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
+	 * 
 	 * @param email
-	 * @generated "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
+	 * @generated 
+	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
 	 */
 	public void deleteUser(String email) {
 		// begin-user-code
@@ -112,12 +113,13 @@ public class UserWrapper {
 		// end-user-code
 	}
 
-	/** 
-	 * <!-- begin-UML-doc -->
-	 * <!-- end-UML-doc -->
+	/**
+	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
+	 * 
 	 * @param userEmail
 	 * @param permission
-	 * @generated "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
+	 * @generated 
+	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
 	 */
 	public void setPermission(String userEmail, Permission permission) {
 		// begin-user-code
@@ -130,7 +132,8 @@ public class UserWrapper {
 		user.deleteUser();
 	}
 
-	public boolean setPermission(Permission permission) throws NotAllowedException, SQLException {
+	public boolean setPermission(Permission permission)
+			throws NotAllowedException, SQLException {
 		UserWrapper currentUser = AccountControl.getLoggedInUser();
 		if (!currentUser.isAllowed(Permission.EditUserPermissions))
 			throw new NotAllowedException(Permission.EditUserPermissions);
@@ -141,7 +144,8 @@ public class UserWrapper {
 		return user.getPermissions().contains(permission);
 	}
 
-	public boolean deletePermission(Permission permission, String userEmail) throws NotAllowedException, SQLException {
+	public boolean deletePermission(Permission permission, String userEmail)
+			throws NotAllowedException, SQLException {
 		UserWrapper currentUser = AccountControl.getLoggedInUser();
 		if (!currentUser.isAllowed(Permission.EditUserPermissions))
 			throw new NotAllowedException(Permission.EditUserPermissions);
