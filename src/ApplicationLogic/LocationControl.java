@@ -32,7 +32,7 @@ public class LocationControl {
 	
 	public Set<String> getValidSubLocations(String location) {
 		Set<String> locations = new HashSet<String>();
-		Queue<Location> toCheck = new ArrayDeque<>();
+		Queue<Location> toCheck = new ArrayDeque<Location>();
 		Location l = unwrap(location);
 		do {
 			if (l != null) {

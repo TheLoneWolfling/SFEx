@@ -61,7 +61,7 @@ public class CategoryControl {
 
 	public Set<String> getValidSubCategories(String category) {
 		Set<String> categories = new HashSet();
-		Queue<Category> toCheck = new ArrayDeque<>();
+		Queue<Category> toCheck = new ArrayDeque<Category>();
 		Category c = unwrap(category);
 		do {
 			if (c != null) {
