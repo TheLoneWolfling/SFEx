@@ -1,56 +1,58 @@
-/**
- * 
- */
+
 package ApplicationLogic;
 
-/**
- * <!-- begin-UML-doc --> <!-- end-UML-doc -->
- * 
- * @author jharris
- * @generated 
- *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
- */
+import java.sql.SQLException;
+import java.util.ArrayDeque;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Queue;
+import java.util.Set;
+
+import DatabaseFrontend.Keyword;
+
 public class KeywordControl {
-	/**
-	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
-	 * 
-	 * @param keyword
-	 * @param newName
-	 * @generated 
-	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
-	 */
-	public void renameKeyword(String keyword, String newName) {
-		// begin-user-code
-		// TODO Auto-generated method stub
+	public final Control p;
 
-		// end-user-code
+	public KeywordControl(Control p) {
+		this.p = p;
 	}
 
-	/**
-	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
-	 * 
-	 * @param keyword
-	 * @generated 
-	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
-	 */
-	public void deleteKeyword(String keyword) {
-		// begin-user-code
-		// TODO Auto-generated method stub
-
-		// end-user-code
+	public boolean renameKeyword(String keyword, String newName) {
+		try {
+			Keyword l = Keyword.getKeywordByName(keyword);
+			if (l == null)
+				return false;
+			return l.setName(newName);
+		} catch (SQLException e) {
+			return false;
+		}
+		
 	}
 
-	/**
-	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
-	 * 
-	 * @param limit
-	 * @generated 
-	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
-	 */
-	public void getKeywords(long limit) {
-		// begin-user-code
-		// TODO Auto-generated method stub
+	Set<String> wrap(Set<Keyword> keywords) {
+		Set<String> toRet = new HashSet<String>();
+		for (Keyword l : keywords)
+			toRet.add(l.getName());
+		return toRet;
+	}
 
-		// end-user-code
+	public Set<Keyword> unwrap(Set<String> keywords) {
+		Set<Keyword> toRet = new HashSet<Keyword>();
+		for (String l : keywords)
+			try {
+				toRet.add(Keyword.getKeywordByName(l));
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		return toRet;
+	}
+
+	public Keyword unwrap(String keyword) {
+		try {
+			return Keyword.getKeywordByName(keyword);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 }

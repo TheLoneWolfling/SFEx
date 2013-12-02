@@ -325,4 +325,26 @@ public class Category {
 				+ ", level=" + level + ", name=" + name + ", parentID="
 				+ parentID + " addr=" + super.toString().split("@")[1] + "]";
 	}
+
+	public Set<Category> getChildCategories() throws SQLException {
+		final String sql = "select * from " + TABLE_NAME + " where "
+				+ PARENT_ID_FIELD_NAME + " = ?;";
+		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
+		final Set<Category> categories = new HashSet<Category>();
+		try {
+			st.setLong(1, id);
+			final ResultSet res = st.executeQuery();
+			while (res.next())
+				categories.add(getCategoryFromCache(res));
+		} finally {
+			try {
+				if (st != null)
+					st.close();
+			} catch (final SQLException e) {
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
+			}
+		}
+		return categories;
+	}
 }

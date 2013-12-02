@@ -221,7 +221,7 @@ public class Location {
 		return getLocationByID(parentID);
 	}
 
-	public Set<Location> getTopLevelLocations() throws SQLException {
+	public static Set<Location> getTopLevelLocations() throws SQLException {
 		final String sql = "select * from " + LOCATION_TABLE_NAME + " where "
 				+ LEVEL_FIELD_NAME + " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);

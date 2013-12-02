@@ -21,9 +21,33 @@ public class ItemKeywordMapping {
 		final String sql = "insert into " + TABLE_NAME + " ("
 				+ ITEM_ID_FIELD_NAME + ", " + KEYWORD_ID_FIELD_NAME
 				+ ") values (?, ?);";
-		final PreparedStatement st = DataManager.getCon().prepareStatement(sql,
-				Statement.RETURN_GENERATED_KEYS);
-		st.setQueryTimeout(5);
+		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
+		final int res;
+		try {
+			st.setLong(1, item.getID());
+			st.setLong(2, k.getID());
+			try {
+				res = st.executeUpdate();
+			} catch (MySQLIntegrityConstraintViolationException s) {
+				return false;
+			}
+		} finally {
+			try {
+				if (st != null) {
+					st.close();
+				}
+			} catch (final SQLException e) {
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
+			}
+		}
+		return res == 1;
+	}
+
+	public static boolean removeMapping(Item item, Keyword k) throws SQLException {
+		final String sql = "delete from " + TABLE_NAME + " where " + ITEM_ID_FIELD_NAME
+				+ " = ? AND " + KEYWORD_ID_FIELD_NAME + " = ?;";
+		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final int res;
 		try {
 			st.setLong(1, item.getID());

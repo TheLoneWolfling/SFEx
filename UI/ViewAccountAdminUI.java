@@ -4,7 +4,6 @@
 package UI;
 
 import static ApplicationLogic.UserWrapper.*;
-import ApplicationLogic.ViewAccountAdmin;
 
 /**
  * <!-- begin-UML-doc --> <!-- end-UML-doc -->

@@ -1,31 +1,36 @@
-/**
- * 
- */
+
 package ApplicationLogic;
 
 import static ApplicationLogic.ItemWrapper.*;
 
-/**
- * <!-- begin-UML-doc --> <!-- end-UML-doc -->
- * 
- * @author jharris
- * @generated 
- *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
- */
+import java.util.HashSet;
+import java.util.Set;
+
+import DatabaseFrontend.Item;
+
 public class ItemControl {
-	/**
-	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
-	 * 
-	 * @param buyNowPriceInCents
-	 * @param description
-	 * @return
-	 * @generated 
-	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
-	 */
+	
+	public final Control p;
+	
+	public ItemControl(Control p) {
+		this.p = p;
+	}
+
 	public ItemWrapper newItem(long buyNowPriceInCents, String description) {
 		// begin-user-code
 		// TODO Auto-generated method stub
 		return null;
 		// end-user-code
+	}
+
+	public Set<ReadonlyItemWrapper> wrapItemsReadOnly(Set<Item> items) {
+		Set<ReadonlyItemWrapper> w = new HashSet();
+		for (Item i : items)
+			w.add(wrapReadOnly(i));
+		return w;
+	}
+
+	ReadonlyItemWrapper wrapReadOnly(Item i) {
+		return new ReadonlyItemWrapper(i, this.p);
 	}
 }

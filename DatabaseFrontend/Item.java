@@ -496,8 +496,8 @@ public class Item {
 				+ super.toString().split("@")[1] + "]";
 	}
 
-	public void addKeyword(Keyword k) throws SQLException {
-		ItemKeywordMapping.addMapping(this, k);
+	public boolean addKeyword(Keyword k) throws SQLException {
+		return ItemKeywordMapping.addMapping(this, k);
 	}
 
 	public void addCategory(Category c) throws SQLException {
@@ -506,5 +506,9 @@ public class Item {
 
 	public void addLocation(Location l) throws SQLException {
 		ItemLocationMapping.addMapping(this, l);
+	}
+
+	public boolean delKeyword(Keyword k) throws SQLException {
+		return ItemKeywordMapping.removeMapping(this, k);
 	}
 }

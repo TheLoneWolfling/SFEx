@@ -1,89 +1,83 @@
-/**
- * 
- */
+
 package ApplicationLogic;
 
+import java.sql.SQLException;
+import java.util.ArrayDeque;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Queue;
 import java.util.Set;
 
-/**
- * <!-- begin-UML-doc --> <!-- end-UML-doc -->
- * 
- * @author jharris
- * @generated 
- *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
- */
+import DatabaseFrontend.Keyword;
+import DatabaseFrontend.Location;
+
 public class LocationControl {
-	/**
-	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
-	 * 
-	 * @param location
-	 * @param newName
-	 * @generated 
-	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
-	 */
-	public void renameLocation(String location, String newName) {
-		// begin-user-code
-		// TODO Auto-generated method stub
+	public final Control p;
 
-		// end-user-code
+	public LocationControl(Control p) {
+		this.p = p;
 	}
 
-	/**
-	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
-	 * 
-	 * @param location
-	 * @param description
-	 * @generated 
-	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
-	 */
-	public void changeDescription(String location, String description) {
-		// begin-user-code
-		// TODO Auto-generated method stub
-
-		// end-user-code
+	public boolean renameLocation(String location, String newName) {
+		try {
+			Location l = unwrap(location);
+			if (l == null)
+				return false;
+			return l.setName(newName);
+		} catch (SQLException e) {
+			return false;
+		}
+		
 	}
-
-	/**
-	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
-	 * 
-	 * @param location
-	 * @return
-	 * @generated 
-	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
-	 */
-	public String getDescription(String location) {
-		// begin-user-code
-		// TODO Auto-generated method stub
-		return null;
-		// end-user-code
-	}
-
-	/**
-	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
-	 * 
-	 * @param location
-	 * @return
-	 * @generated 
-	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
-	 */
+	
 	public Set<String> getValidSubLocations(String location) {
-		// begin-user-code
-		// TODO Auto-generated method stub
-		return null;
-		// end-user-code
+		Set<String> locations = new HashSet<String>();
+		Queue<Location> toCheck = new ArrayDeque<>();
+		Location l = unwrap(location);
+		do {
+			if (l != null) {
+				locations.add(l.getName());
+				try {
+					for (Location m : l.getChildLocations())
+						toCheck.add(m);
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+			l = toCheck.poll();
+		} while (!toCheck.isEmpty());
+		return locations;
 	}
 
-	/**
-	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
-	 * 
-	 * @return
-	 * @generated 
-	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
-	 */
 	public Set<String> getTopLevelLocations() {
-		// begin-user-code
-		// TODO Auto-generated method stub
-		return null;
-		// end-user-code
+		try {
+			return wrap(Location.getTopLevelLocations());
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return Collections.emptySet();
+		}
+	}
+
+	public Location unwrap(String location) {
+		try {
+			return Location.getLocationByName(location);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	Set<String> wrap(Set<Location> locations) {
+		Set<String> toRet = new HashSet<String>();
+		for (Location l : locations)
+			toRet.add(l.getName());
+		return toRet;
+	}
+
+	public Set<Location> unwrap(Set<String> locations) {
+		Set<Location> toRet = new HashSet<Location>();
+		for (String l : locations)
+			toRet.add(unwrap(l));
+		return toRet;
 	}
 }

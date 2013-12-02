@@ -3,8 +3,6 @@
  */
 package ApplicationLogic;
 
-import static ApplicationLogic.Control.*;
-
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
@@ -16,147 +14,122 @@ import DatabaseFrontend.Permission;
 
 public class UserWrapper {
 	private final User user;
+	private AccountControl control;
 
-	public String getEmail() throws NotAllowedException {
-		UserWrapper currentUser = AccountControl.getLoggedInUser();
-		if (this.user != currentUser.user
-				&& !AccountControl.getLoggedInUser().isAllowed(
-						Permission.ViewEmail))
-			throw new NotAllowedException(Permission.ViewEmail);
+	public String getEmail() {
+		if (!control.isLoggedInUserAllowed(this, Permission.ViewEmail))
+			return "";
 		return user.getEmail();
 	}
 
-	public String getContactInfo() throws NotAllowedException {
-		UserWrapper currentUser = AccountControl.getLoggedInUser();
-		if (this.user != currentUser.user
-				&& !AccountControl.getLoggedInUser().isAllowed(
-						Permission.ViewContactInfo))
-			throw new NotAllowedException(Permission.ViewContactInfo);
-		return user.getEmail();
+	public String getContactInfo() {		
+		if (!control.isLoggedInUserAllowed(this, Permission.ViewContactInfo))
+			return "";
+		return user.getContactInfo();
 	}
 
-	public void setEmail(String email) throws NotAllowedException {
-		UserWrapper currentUser = AccountControl.getLoggedInUser();
-		if (this.user == currentUser.user) {
-			if (!currentUser.isAllowed(Permission.EditOwnUser))
-				throw new NotAllowedException(Permission.EditOwnUser);
-		} else {
-			if (!currentUser.isAllowed(Permission.EditOtherUsers))
-				throw new NotAllowedException(Permission.EditOtherUsers);
+	public boolean setEmail(String email) {
+		if (!control.isLoggedInUserAllowed(this, Permission.EditOwnUser, Permission.EditOtherUsers))
+			return false;
+		try {
+			return user.setEmail(email);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
 		}
-		user.setEmail(email);
 	}
 
 	public Set<ItemWrapper> getItemsSelling() {
-		UserWrapper currentUser = AccountControl.getLoggedInUser();
-		if (this.user == currentUser.user) {
-			if (!currentUser.isAllowed(Permission.EditOwnUser))
-				throw new NotAllowedException(Permission.EditOwnUser);
-		} else {
-			if (!currentUser.isAllowed(Permission.EditOtherUsers))
-				throw new NotAllowedException(Permission.EditOtherUsers);
-		}
 		Set<ItemWrapper> s = new HashSet<ItemWrapper>();
 
-		for (Item i : user.getItemsSelling())
-			s.add(new ItemWrapper(i));
+		try {
+			for (Item i : user.getItemsSelling())
+				s.add(new ItemWrapper(i, control.p));
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		return s;
 	}
 
 	public Set<BidWrapper> getBidsMade() {
-		UserWrapper currentUser = AccountControl.getLoggedInUser();
-		if (this.user != currentUser.user
-				&& !currentUser.isAllowed(Permission.ViewBids))
-			throw new NotAllowedException(Permission.ViewBids);
+		if (!control.isLoggedInUserAllowed(this, Permission.ViewBids))
+			return null;
 		Set<BidWrapper> s = new HashSet<BidWrapper>();
-		for (Bid b : user.getBidsMade())
-			;
-		s.add(new BidWrapper(b));
+		try {
+			for (Bid b : user.getBidsMade())
+				s.add(new BidWrapper(b, control.p));
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		return s;
 	}
 
-	public void setContactInfo(String contactInfo) {
-		UserWrapper currentUser = AccountControl.getLoggedInUser();
-		if (this.user == currentUser.user) {
-			if (!currentUser.isAllowed(Permission.EditOwnUser))
-				throw new NotAllowedException(Permission.EditOwnUser);
-		} else {
-			if (!currentUser.isAllowed(Permission.EditOtherUsers))
-				throw new NotAllowedException(Permission.EditOtherUsers);
+	public boolean setContactInfo(String contactInfo) {
+		if (!control.isLoggedInUserAllowed(this, Permission.EditOwnUser, Permission.EditOtherUsers))
+			return false;
+		try {
+			return user.setContactInfo(contactInfo);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
 		}
-		user.setContactInfo(contactInfo);
 	}
 
-	public void setPassword(String password) {
-		UserWrapper currentUser = AccountControl.getLoggedInUser();
-		if (this.user == currentUser.user) {
-			if (!currentUser.isAllowed(Permission.EditOwnUser))
-				throw new NotAllowedException(Permission.EditOwnUser);
-		} else {
-			if (!currentUser.isAllowed(Permission.EditOtherUsers))
-				throw new NotAllowedException(Permission.EditOtherUsers);
+	public boolean setPassword(String password) {
+		if (!control.isLoggedInUserAllowed(this, Permission.EditOwnUser, Permission.EditOtherUsers))
+			return false;
+		try {
+			return user.setPasswordHash(AccountControl.hash(password, user.getSalt()));
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
 		}
-		user.setPassword(AccountControl.hash(password, user.getSalt()));
 	}
 
-	/**
-	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
-	 * 
-	 * @param email
-	 * @generated 
-	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
-	 */
-	public void deleteUser(String email) {
-		// begin-user-code
-		// TODO Auto-generated method stub
-
-		// end-user-code
+	public boolean deleteUser() {
+		if (!control.isLoggedInUserAllowed(this, Permission.EditOwnUser, Permission.EditOtherUsers))
+			return false;
+		try {
+			return user.deleteUser();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 
-	/**
-	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
-	 * 
-	 * @param userEmail
-	 * @param permission
-	 * @generated 
-	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
-	 */
-	public void setPermission(String userEmail, Permission permission) {
-		// begin-user-code
-		// TODO Auto-generated method stub
-
-		// end-user-code
-	}
-
-	public void deleteUser() {
-		user.deleteUser();
-	}
-
-	public boolean setPermission(Permission permission)
-			throws NotAllowedException, SQLException {
-		UserWrapper currentUser = AccountControl.getLoggedInUser();
-		if (!currentUser.isAllowed(Permission.EditUserPermissions))
-			throw new NotAllowedException(Permission.EditUserPermissions);
-		return user.setPermission(permission);
+	public boolean setPermission(Permission permission) {
+		if (!control.isLoggedInUserAllowed(this, Permission.EditUserPermissions, Permission.EditUserPermissions))
+			return false;
+		try {
+			return user.setPermission(permission);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 
 	public boolean isAllowed(Permission permission) {
 		return user.getPermissions().contains(permission);
 	}
 
-	public boolean deletePermission(Permission permission, String userEmail)
-			throws NotAllowedException, SQLException {
-		UserWrapper currentUser = AccountControl.getLoggedInUser();
-		if (!currentUser.isAllowed(Permission.EditUserPermissions))
-			throw new NotAllowedException(Permission.EditUserPermissions);
-		return user.deletePermission(permission);
+	public boolean deletePermission(Permission permission, String userEmail) {
+		if (!control.isLoggedInUserAllowed(this, Permission.EditUserPermissions, Permission.EditUserPermissions))
+			return false;
+		try {
+			return user.deletePermission(permission);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 
-	public UserWrapper(User user) {
+	UserWrapper(User user, Control control) {
 		this.user = user;
+		this.control = control.accountControl;
 	}
 
-	public UserWrapper(long id) throws SQLException {
-		this.user = User.getUserFromID(id);
+	public boolean checkPass(String password) {
+		String hash = user.getPasswordHash();
+		return hash.equals(AccountControl.hash(password, user.getSalt()));
 	}
 }

@@ -8,110 +8,91 @@ import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
+import java.sql.SQLException;
+import java.util.EnumSet;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+import javax.servlet.http.HttpSession;
 import javax.xml.bind.DatatypeConverter;
 
 import DatabaseFrontend.Permission;
+import DatabaseFrontend.User;
 
 public class AccountControl {
-	/**
-	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
-	 * 
-	 * @generated 
-	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
-	 */
-	// private DeleteAccount deleteAccount;
-	/**
-	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
-	 * 
-	 * @generated 
-	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
-	 */
-	// private DeleteOtherAccount deleteOtherAccount;
-	// private DeleteAccount deleteAccount;
-	// private DeleteOtherAccount deleteOtherAccount;
-	private UserWrapper userWrapper;
+	private final HttpSession s;
+	final Control p;
+
+	public AccountControl(HttpSession s, Control c) {
+		this.s = s;
+		this.p = c;
+	}
+	
+	private static final EnumSet<Permission> stdPermissions = EnumSet.noneOf(Permission.class);
+	private static final EnumSet<Permission> stdUserPermissions = EnumSet.allOf(Permission.class);
+
+	private UserWrapper loggedUser;
 	private static SecureRandom r = new SecureRandom();
 
-	public void tryRegisterUser(String email, String contactInfo,
+	public RegStatus tryRegisterUser(String email, String userName, String contactInfo,
 			String password, Permission... permissions) {
-		// begin-user-code
-		// TODO Auto-generated method stub
-
-		// end-user-code
+		UserWrapper temp = p.userControl.getUserFromEmail(email);
+		if (temp != null)
+			return RegStatus.EMAIL_TAKEN;
+		temp = p.userControl.getUserFromName(userName);
+		if (temp != null)
+			return RegStatus.NAME_TAKEN;
+		if (password.length() < 8)
+			return RegStatus.PASS_TOO_SHORT;
+		String salt = makeSalt();
+		try {
+			loggedUser = p.userControl.wrap(User.makeUser(email, userName, contactInfo, hash(password, salt), stdUserPermissions, salt));
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return RegStatus.ERROR;
+		}
+		return RegStatus.OK;
 	}
 
-	/**
-	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
-	 * 
-	 * @param email
-	 * @param password
-	 * @return
-	 * @generated 
-	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
-	 */
-	public Boolean tryLogin(String email, String password) {
-		// begin-user-code
-		// TODO Auto-generated method stub
-		return null;
-		// end-user-code
+	public boolean tryLogin(String name, String password) {
+		UserWrapper toRet = p.userControl.getUserFromEmailOrName(name);
+		if (!toRet.checkPass(password))
+			toRet = null;
+		loggedUser = toRet;
+		return loggedUser != null;
 	}
 
-	/**
-	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
-	 * 
-	 * @return
-	 * @generated 
-	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
-	 */
-	public Object logOut() {
-		// begin-user-code
-		// TODO Auto-generated method stub
-		return null;
-		// end-user-code
+	public void logOut() {
+		loggedUser = null;
+		s.invalidate();
 	}
-
-	/**
-	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
-	 * 
-	 * @return
-	 * @generated 
-	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
-	 */
-	public Boolean isLoggedIn() {
-		// begin-user-code
-		// TODO Auto-generated method stub
-		return null;
-		// end-user-code
+	
+	public boolean isLoggedIn() {
+		return getLoggedInUser() != null;
 	}
-
-	/**
-	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
-	 * 
-	 * @generated 
-	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
-	 */
-	public static UserWrapper getLoggedInUser() {
-		// begin-user-code
-		// TODO Auto-generated method stub
-		return null;
-		// end-user-code
+	
+	public boolean isLoggedInUserAllowed(Permission p) {
+		UserWrapper w = getLoggedInUser();
+		if (w != null)
+			return w.isAllowed(p);
+		return stdPermissions.contains(p);
 	}
-
-	/**
-	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
-	 * 
-	 * @generated 
-	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
-	 */
-	public void getOtherUser() {
-		// begin-user-code
-		// TODO Auto-generated method stub
-
-		// end-user-code
+	
+	
+	public UserWrapper getLoggedInUser() {
+		if (loggedUser != null)
+			return loggedUser;
+		Object o = s.getAttribute("userId");
+		if (o == null)
+			return null;
+		else if (!(o instanceof Long)) {
+			System.err.println("Uh-oh. Invalid object type: " + o);
+			s.removeAttribute("userId");
+		} else {
+			loggedUser = p.userControl.getUserFromId((Long) o);
+		}
+		return loggedUser;
 	}
 
 	public static String hash(String password, String salt) {
@@ -125,7 +106,6 @@ public class AccountControl {
 			key = f.generateSecret(new PBEKeySpec(password.toCharArray(), salt
 					.getBytes("UTF-8"), 10 * 1024, 512));
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			throw new RuntimeException();
 		} catch (InvalidKeySpecException e) {
@@ -142,5 +122,15 @@ public class AccountControl {
 		final byte[] saltBytes = new byte[512 / 8];
 		r.nextBytes(saltBytes);
 		return DatatypeConverter.printBase64Binary(saltBytes);
+	}
+
+	public boolean isLoggedInUserAllowed(UserWrapper userWrapper,
+			Permission p) {
+		return true;
+	}
+
+	public boolean isLoggedInUserAllowed(UserWrapper userWrapper,
+			Permission editownuser, Permission editotherusers) {
+		return true;
 	}
 }

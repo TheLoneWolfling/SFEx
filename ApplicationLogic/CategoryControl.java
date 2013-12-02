@@ -3,87 +3,104 @@
  */
 package ApplicationLogic;
 
+import java.sql.SQLException;
+import java.util.ArrayDeque;
+import java.util.HashSet;
+import java.util.Queue;
 import java.util.Set;
 
-/**
- * <!-- begin-UML-doc --> <!-- end-UML-doc -->
- * 
- * @author jharris
- * @generated 
- *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
- */
+import DatabaseFrontend.Category;
+import DatabaseFrontend.Category;
+
 public class CategoryControl {
-	/**
-	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
-	 * 
-	 * @param category
-	 * @param newName
-	 * @generated 
-	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
-	 */
-	public void renameCategory(String category, String newName) {
-		// begin-user-code
-		// TODO Auto-generated method stub
+	private Control c;
 
-		// end-user-code
+	public CategoryControl(Control c) {
+		this.c = c;
 	}
 
-	/**
-	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
-	 * 
-	 * @param category
-	 * @param description
-	 * @generated 
-	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
-	 */
-	public void changeDescription(String category, String description) {
-		// begin-user-code
-		// TODO Auto-generated method stub
-
-		// end-user-code
+	public Category unwrap(String category) {
+		try {
+			return Category.getCategoryByName(category);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public boolean renameCategory(String category, String newName) {
+		Category c = unwrap(category);
+		if (c == null)
+			return false;
+		try {
+			return c.setName(newName);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 
-	/**
-	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
-	 * 
-	 * @param category
-	 * @return
-	 * @generated 
-	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
-	 */
+	public boolean changeDescription(String category, String description) {
+		Category c = unwrap(category);
+		if (c == null)
+			return false;
+		try {
+			return c.setDescription(description);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
 	public String getDescription(String category) {
-		// begin-user-code
-		// TODO Auto-generated method stub
-		return null;
-		// end-user-code
+		Category c = unwrap(category);
+		if (c == null)
+			return "ERROR";
+		return c.getDescription();
 	}
 
-	/**
-	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
-	 * 
-	 * @param category
-	 * @return
-	 * @generated 
-	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
-	 */
 	public Set<String> getValidSubCategories(String category) {
-		// begin-user-code
-		// TODO Auto-generated method stub
-		return null;
-		// end-user-code
+		Set<String> categories = new HashSet();
+		Queue<Category> toCheck = new ArrayDeque<>();
+		Category c = unwrap(category);
+		do {
+			if (c != null) {
+				categories.add(c.getName());
+				try {
+					for (Category d : c.getChildCategories())
+						toCheck.add(d);
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+			c = toCheck.poll();
+		} while (!toCheck.isEmpty());
+		return categories;
 	}
 
-	/**
-	 * <!-- begin-UML-doc --> <!-- end-UML-doc -->
-	 * 
-	 * @return
-	 * @generated 
-	 *            "UML to Java (com.ibm.xtools.transform.uml2.java5.internal.UML2JavaTransform)"
-	 */
+
 	public Set<String> getTopLevelCategories() {
-		// begin-user-code
-		// TODO Auto-generated method stub
-		return null;
-		// end-user-code
+		Set<String> categories = new HashSet();
+		try {
+			for (Category c : Category.getTopLevelCategories())
+				categories.add(c.getName());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return categories;
+	}
+
+	Set<String> wrap(Set<Category> categories) {
+		Set<String> toRet = new HashSet<String>();
+		for (Category c : categories)
+			toRet.add(c.getName());
+		return toRet;
+	}
+
+	public Set<Category> unwrap(Set<String> categories) {
+		Set<Category> toRet = new HashSet<Category>();
+		for (String c : categories)
+			toRet.add(unwrap(c));
+		return toRet;
 	}
 }
