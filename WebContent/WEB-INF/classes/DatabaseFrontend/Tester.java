@@ -13,7 +13,10 @@ public class Tester {
 	public static void main(String[] args) throws SQLException {
 		final String salt = AccountControl.makeSalt();
 		final EnumSet<Permission> allpermissions = EnumSet
-				.allOf(Permission.class);
+				.allOf(Permission.class);		
+		User.makeUser("e@mail.address", "userName", "contactInfo", AccountControl.hash("abcd", salt), allpermissions, salt);
+		if ("".isEmpty())
+			return;
 		for (int i = 0; i < 10; i++) {
 			final int j = i;
 			new Thread() {

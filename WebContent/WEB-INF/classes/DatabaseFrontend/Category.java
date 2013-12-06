@@ -30,7 +30,8 @@ public class Category {
 			+ LEVEL_FIELD_NAME;
 	private static final String NAME_DOTTED = TABLE_NAME + "."
 			+ NAME_FIELD_NAME;
-	private static final String PARENT_ID_DOTTED = PARENT_ID_FIELD_NAME;
+	private static final String PARENT_ID_DOTTED = TABLE_NAME + "."
+			+ PARENT_ID_FIELD_NAME;
 	private static final String DOTTED_ROW_NAMES = DESCRIPTION_DOTTED + ", "
 			+ ID_DOTTED + ", " + LEVEL_DOTTED + ", " + NAME_DOTTED + ", "
 			+ PARENT_ID_DOTTED;
@@ -47,6 +48,7 @@ public class Category {
 			if (!res.next())
 				return null;
 			c = getCategoryFromCache(res);
+			assert (!res.next());
 		} finally {
 			try {
 				if (st != null)
@@ -72,6 +74,7 @@ public class Category {
 			if (!res.next())
 				return null;
 			c = getCategoryFromCache(res);
+			assert (!res.next());
 		} finally {
 			try {
 				if (st != null)
@@ -185,8 +188,7 @@ public class Category {
 						+ e.getMessage());
 			}
 		}
-		if (res != 1)
-			return null;
+		assert (res == 1);
 		return c;
 	}
 
@@ -221,6 +223,7 @@ public class Category {
 						+ e.getMessage());
 			}
 		}
+		assert (res <= 1);
 		return res == 1;
 	}
 
@@ -244,7 +247,8 @@ public class Category {
 		return getCategoryByID(parentID);
 	}
 
-	public boolean setDescription(final String description) throws SQLException {
+	public synchronized boolean setDescription(final String description)
+			throws SQLException {
 		this.description = description;
 		final String sql = "update " + TABLE_NAME + " set "
 				+ DESCRIPTION_FIELD_NAME + " = ? where " + ID_FIELD_NAME
@@ -267,7 +271,7 @@ public class Category {
 		return res == 1;
 	}
 
-	public boolean setName(final String name) throws SQLException {
+	public synchronized boolean setName(final String name) throws SQLException {
 		this.name = name;
 		final String sql = "update " + TABLE_NAME + " set " + NAME_FIELD_NAME
 				+ " = ? where " + ID_FIELD_NAME + " = ?;";
@@ -276,7 +280,11 @@ public class Category {
 		try {
 			st.setString(1, name);
 			st.setLong(2, id);
-			res = st.executeUpdate();
+			try {
+				res = st.executeUpdate();
+			} catch (MySQLIntegrityConstraintViolationException s) {
+				return false;
+			}
 		} finally {
 			try {
 				if (st != null)
@@ -289,7 +297,8 @@ public class Category {
 		return res == 1;
 	}
 
-	public boolean setParent(final Category parent) throws SQLException {
+	public synchronized boolean setParent(final Category parent)
+			throws SQLException {
 		if (parent == null) {
 			level = TOP_LEVEL;
 			parentID = INVALID_PARENT_ID;

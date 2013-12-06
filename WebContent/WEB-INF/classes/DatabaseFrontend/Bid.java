@@ -35,6 +35,7 @@ public class Bid {
 			if (!res.next())
 				return null;
 			bid = getBidFromCache(res);
+			assert(!res.next());
 		} finally {
 			try {
 				if (st != null)
@@ -111,6 +112,7 @@ public class Bid {
 			try {
 				res = st.executeUpdate();
 			} catch (MySQLIntegrityConstraintViolationException s) {
+				assert(false);
 				return null;
 			}
 			final ResultSet rs = st.getGeneratedKeys();
@@ -127,9 +129,9 @@ public class Bid {
 						+ e.getMessage());
 			}
 		}
-		if (res != 1)
-			return null;
+		assert(res == 1);
 		final Bid bid = getBidFromId(bidId);
+		assert(bid != null);
 		return bid;
 	}
 
@@ -162,6 +164,7 @@ public class Bid {
 						+ e.getMessage());
 			}
 		}
+		assert(res <= 1);
 		return res == 1;
 	}
 
