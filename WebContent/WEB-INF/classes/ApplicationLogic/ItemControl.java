@@ -3,24 +3,42 @@ package ApplicationLogic;
 
 import static ApplicationLogic.ItemWrapper.*;
 
+import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
 
 import DatabaseFrontend.Item;
+import DatabaseFrontend.Permission;
+import DatabaseFrontend.User;
 
 public class ItemControl {
 	
 	public final Control p;
 	
+	
 	public ItemControl(Control p) {
 		this.p = p;
+		
 	}
 
 	public ItemWrapper newItem(long buyNowPriceInCents, String description) {
-		// begin-user-code
-		// TODO Auto-generated method stub
-		return null;
-		// end-user-code
+		try{
+		UserWrapper _wuser = p.accountControl.getLoggedInUser();
+		if(!_wuser.isAllowed(Permission.MakeItem))
+			return null;
+		User _user = _wuser.getuser();
+		Item retitem = Item.makeItem(buyNowPriceInCents, 0, _user, description);
+		if (retitem == null)
+			return null;
+		return (new ItemWrapper(retitem,p));
+		}
+		catch (SQLException e) 
+		{
+			e.printStackTrace();
+			return null;
+		}
+		
+		
 	}
 
 	public Set<ReadonlyItemWrapper> wrapItemsReadOnly(Set<Item> items) {
