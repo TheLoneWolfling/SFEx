@@ -132,4 +132,8 @@ public class UserWrapper {
 		String hash = user.getPasswordHash();
 		return hash.equals(AccountControl.hash(password, user.getSalt()));
 	}
+
+	public User getuser() {
+		return user;
+	}
 }
