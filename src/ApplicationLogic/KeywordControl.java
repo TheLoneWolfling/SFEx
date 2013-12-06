@@ -9,6 +9,7 @@ import java.util.Queue;
 import java.util.Set;
 
 import DatabaseFrontend.Keyword;
+import DatabaseFrontend.Permission;
 
 public class KeywordControl {
 	public final Control p;
@@ -18,6 +19,8 @@ public class KeywordControl {
 	}
 
 	public boolean renameKeyword(String keyword, String newName) {
+		if (!p.accountControl.isLoggedInUserAllowed(Permission.EditKeywords))
+			return false;
 		try {
 			Keyword l = Keyword.getKeywordByName(keyword);
 			if (l == null)

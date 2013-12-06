@@ -2,6 +2,7 @@ package ApplicationLogic;
 
 import java.sql.SQLException;
 
+import DatabaseFrontend.Permission;
 import DatabaseFrontend.User;
 
 public class UserControl {
@@ -24,7 +25,7 @@ public class UserControl {
 		return null;
 	}
 
-	UserWrapper wrap(User user) {
+	public UserWrapper wrap(User user) {
 		if (user == null)
 			return null;
 		return new UserWrapper(user, this.p);

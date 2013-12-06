@@ -130,11 +130,16 @@ public class AccountControl {
 
 	public boolean isLoggedInUserAllowed(UserWrapper userWrapper,
 			Permission p) {
-		return true;
+		if (getLoggedInUser().getUser() == userWrapper.getUser()) 
+			return true;
+		return isLoggedInUserAllowed(p);
 	}
 
 	public boolean isLoggedInUserAllowed(UserWrapper userWrapper,
-			Permission editownuser, Permission editotherusers) {
-		return true;
+			Permission own, Permission other) {
+
+		if (getLoggedInUser().getUser() == userWrapper.getUser()) 
+			return isLoggedInUserAllowed(own);
+		return isLoggedInUserAllowed(other);
 	}
 }

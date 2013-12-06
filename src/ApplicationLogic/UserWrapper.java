@@ -4,6 +4,7 @@
 package ApplicationLogic;
 
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -31,6 +32,8 @@ public class UserWrapper {
 	public boolean setEmail(String email) {
 		if (!control.isLoggedInUserAllowed(this, Permission.EditOwnUser, Permission.EditOtherUsers))
 			return false;
+		if (control.p.userControl.getUserFromEmail(email) != null)
+			return false;
 		try {
 			return user.setEmail(email);
 		} catch (SQLException e) {
@@ -41,7 +44,6 @@ public class UserWrapper {
 
 	public Set<ItemWrapper> getItemsSelling() {
 		Set<ItemWrapper> s = new HashSet<ItemWrapper>();
-
 		try {
 			for (Item i : user.getItemsSelling())
 				s.add(new ItemWrapper(i, control.p));
@@ -53,7 +55,7 @@ public class UserWrapper {
 
 	public Set<BidWrapper> getBidsMade() {
 		if (!control.isLoggedInUserAllowed(this, Permission.ViewBids))
-			return null;
+			return Collections.emptySet();
 		Set<BidWrapper> s = new HashSet<BidWrapper>();
 		try {
 			for (Bid b : user.getBidsMade())
@@ -78,6 +80,8 @@ public class UserWrapper {
 	public boolean setPassword(String password) {
 		if (!control.isLoggedInUserAllowed(this, Permission.EditOwnUser, Permission.EditOtherUsers))
 			return false;
+		if (password.length() < 8)
+			return false;
 		try {
 			return user.setPasswordHash(AccountControl.hash(password, user.getSalt()));
 		} catch (SQLException e) {
@@ -92,11 +96,29 @@ public class UserWrapper {
 		try {
 			if (this == control.p.accountControl.getLoggedInUser())
 				control.p.accountControl.logOut();
+			for (BidWrapper b : getBidsMade())
+				b.delete();
+			for (ItemWrapper i : getItemsSelling())
+				i.delete();
+			for (ItemWrapper i : getItemsSoldTo())
+				i.item.setSoldToUser(null);
 			return user.deleteUser();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
 		}
+	}
+
+	private Set<ItemWrapper> getItemsSoldTo() {
+		Set<Item> i = null;
+		try {
+			i = user.getItemsSoldTo();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		if (i == null)
+			return Collections.emptySet();
+		return control.p.itemControl.wrap(i);
 	}
 
 	public boolean setPermission(Permission permission) {
@@ -125,7 +147,7 @@ public class UserWrapper {
 		}
 	}
 
-	UserWrapper(User user, Control control) {
+	public UserWrapper(User user, Control control) {
 		this.user = user;
 		this.control = control.accountControl;
 	}

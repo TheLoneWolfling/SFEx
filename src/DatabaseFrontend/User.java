@@ -9,6 +9,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Set;
 
+import ApplicationLogic.ItemWrapper;
+
 import com.mysql.jdbc.exceptions.MySQLIntegrityConstraintViolationException;
 
 public class User {
@@ -371,5 +373,9 @@ public class User {
 			}
 		}
 		assert (res == 1);
+	}
+
+	public Set<Item> getItemsSoldTo() throws SQLException {
+		return Item.getItemsByUserSoldTo(this);
 	}
 }

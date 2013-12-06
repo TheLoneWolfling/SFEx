@@ -3,6 +3,8 @@
  */
 package ApplicationLogic;
 
+import java.sql.SQLException;
+
 public class PurchaseControl {
 	
 	public final Control p;
@@ -12,10 +14,12 @@ public class PurchaseControl {
 	}
 
 	public boolean tryBuyNow(ItemWrapper item) {
-		return true;
+		if (!p.accountControl.isLoggedIn())
+			return false;
+		return item.setSoldToUser(p.accountControl.getLoggedInUser());
 	}
 
-	public BidWrapper makeBid(ItemWrapper item, long amountInCents) {
-		return null;
+	public BidWrapper makeBid(ItemWrapper item, long priceInCents) {
+		return p.bidControl.makeBid(p.accountControl.getLoggedInUser(), item, priceInCents);
 	}
 }

@@ -1,4 +1,3 @@
-
 package ApplicationLogic;
 
 import static ApplicationLogic.ItemWrapper.*;
@@ -12,33 +11,35 @@ import DatabaseFrontend.Permission;
 import DatabaseFrontend.User;
 
 public class ItemControl {
-	
+
 	public final Control p;
-	
-	
+
 	public ItemControl(Control p) {
 		this.p = p;
-		
+
 	}
 
-	public ItemWrapper newItem(String name, long buyNowPriceInCents, String description) {
-		try{
-		UserWrapper _wuser = p.accountControl.getLoggedInUser();
-		if(!_wuser.isAllowed(Permission.MakeItem))
+	public ItemWrapper newItem(String name, long buyNowPriceInCents,
+			String description) {
+		if (buyNowPriceInCents < 0)
 			return null;
-		User _user = _wuser.getUser();
-		Item retitem = Item.makeItem(buyNowPriceInCents, name, 0, _user, description);
-		if (retitem == null)
+		if (name == "" || name == null)
 			return null;
-		return (new ItemWrapper(retitem,p));
-		}
-		catch (SQLException e) 
-		{
+		try {
+			UserWrapper _wuser = p.accountControl.getLoggedInUser();
+			if (!_wuser.isAllowed(Permission.MakeItem))
+				return null;
+			User _user = _wuser.getUser();
+			Item retitem = Item.makeItem(buyNowPriceInCents, name, 0, _user,
+					description);
+			if (retitem == null)
+				return null;
+			return (new ItemWrapper(retitem, p));
+		} catch (SQLException e) {
 			e.printStackTrace();
 			return null;
 		}
-		
-		
+
 	}
 
 	public Set<ReadonlyItemWrapper> wrapItemsReadOnly(Set<Item> items) {
@@ -50,5 +51,16 @@ public class ItemControl {
 
 	ReadonlyItemWrapper wrapReadOnly(Item i) {
 		return new ReadonlyItemWrapper(i, this.p);
+	}
+
+	public Set<ItemWrapper> wrap(Set<Item> items) {
+		Set<ItemWrapper> w = new HashSet();
+		for (Item i : items)
+			w.add(wrap(i));
+		return w;
+	}
+
+	private ItemWrapper wrap(Item i) {
+		return new ItemWrapper(i, this.p);
 	}
 }

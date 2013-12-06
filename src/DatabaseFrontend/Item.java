@@ -522,7 +522,10 @@ public class Item {
 	}
 
 	public boolean setSoldToUser(final User user) throws SQLException {
-		soldToUserID = user.getID();
+		if (user == null)
+			soldToUserID = INVALID_USER;
+		else
+			soldToUserID = user.getID();
 		final String sql = "update " + TABLE_NAME + " set "
 				+ SOLD_TO_USER_ID_FIELD_NAME + " = ? where " + ID_FIELD_NAME
 				+ " = ?;";
@@ -602,5 +605,27 @@ public class Item {
 
 	public boolean delLocation(Location l) throws SQLException {
 		return ItemLocationMapping.removeMapping(this, l);
+	}
+
+	public static Set<Item> getItemsByUserSoldTo(User user)throws SQLException {
+	final String sql = "select * from " + TABLE_NAME + " where "
+			+ SOLD_TO_USER_ID_FIELD_NAME + " = ?";
+	final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
+	final Set<Item> items = new HashSet<Item>();
+	try {
+		st.setLong(1, user.getID());
+		final ResultSet res = st.executeQuery();
+		while (res.next())
+			items.add(getItemFromCache(res));
+	} finally {
+		try {
+			if (st != null)
+				st.close();
+		} catch (final SQLException e) {
+			System.out.println("Error closing prepared statement : "
+					+ e.getMessage());
+		}
+	}
+	return items;
 	}
 }

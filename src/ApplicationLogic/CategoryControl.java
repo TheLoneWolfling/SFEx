@@ -5,12 +5,15 @@ package ApplicationLogic;
 
 import java.sql.SQLException;
 import java.util.ArrayDeque;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
 
 import DatabaseFrontend.Category;
 import DatabaseFrontend.Category;
+import DatabaseFrontend.Location;
+import DatabaseFrontend.Permission;
 
 public class CategoryControl {
 	private Control c;
@@ -29,6 +32,8 @@ public class CategoryControl {
 	}
 	
 	public boolean renameCategory(String category, String newName) {
+		if (!c.accountControl.isLoggedInUserAllowed(Permission.EditCategories))
+			return false;
 		Category c = unwrap(category);
 		if (c == null)
 			return false;
@@ -41,6 +46,8 @@ public class CategoryControl {
 	}
 
 	public boolean changeDescription(String category, String description) {
+		if (!c.accountControl.isLoggedInUserAllowed(Permission.EditCategories))
+			return false;
 		Category c = unwrap(category);
 		if (c == null)
 			return false;
@@ -76,6 +83,17 @@ public class CategoryControl {
 			c = toCheck.poll();
 		} while (!toCheck.isEmpty());
 		return categories;
+	}
+
+	public Set<String> getChildren(String category) {
+		try {
+			Category c = Category.getCategoryByName(category);
+			if (c != null)
+				return wrap(c.getChildCategories());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return Collections.emptySet();
 	}
 
 

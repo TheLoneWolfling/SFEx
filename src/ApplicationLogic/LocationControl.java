@@ -1,4 +1,3 @@
-
 package ApplicationLogic;
 
 import java.sql.SQLException;
@@ -10,6 +9,7 @@ import java.util.Set;
 
 import DatabaseFrontend.Keyword;
 import DatabaseFrontend.Location;
+import DatabaseFrontend.Permission;
 
 public class LocationControl {
 	public final Control p;
@@ -19,6 +19,8 @@ public class LocationControl {
 	}
 
 	public boolean renameLocation(String location, String newName) {
+		if (!p.accountControl.isLoggedInUserAllowed(Permission.EditLocations))
+			return false;
 		try {
 			Location l = unwrap(location);
 			if (l == null)
@@ -27,9 +29,20 @@ public class LocationControl {
 		} catch (SQLException e) {
 			return false;
 		}
-		
+
 	}
-	
+
+	public Set<String> getChildren(String location) {
+		try {
+			Location l = Location.getLocationByName(location);
+			if (l != null)
+				return wrap(l.getChildLocations());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return Collections.emptySet();
+	}
+
 	public Set<String> getValidSubLocations(String location) {
 		Set<String> locations = new HashSet<String>();
 		Queue<Location> toCheck = new ArrayDeque<>();
