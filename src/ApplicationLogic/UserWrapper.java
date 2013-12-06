@@ -133,7 +133,7 @@ public class UserWrapper {
 		return hash.equals(AccountControl.hash(password, user.getSalt()));
 	}
 
-	public User getuser() {
+	public User getUser() {
 		return user;
 	}
 }

@@ -215,7 +215,7 @@ public class User {
 		return email;
 	}
 
-	protected long getID() {
+	public long getID() {
 		return id;
 	}
 
@@ -312,6 +312,10 @@ public class User {
 			}
 		}
 		return res == 1;
+	}
+	
+	public long getId() {
+		return id;
 	}
 
 	public synchronized boolean setPermission(final Permission permission)

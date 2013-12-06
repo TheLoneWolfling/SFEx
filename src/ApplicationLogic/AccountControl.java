@@ -61,7 +61,7 @@ public class AccountControl {
 			return false;
 		if (!toRet.checkPass(password))
 			toRet = null;
-		 s.setAttribute("userId", toRet.getId());
+		 s.setAttribute("userId", toRet.getUser().getID());
 		loggedUser = toRet;
 		return loggedUser != null;
 	}

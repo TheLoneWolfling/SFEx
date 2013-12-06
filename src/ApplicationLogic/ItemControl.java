@@ -26,7 +26,7 @@ public class ItemControl {
 		UserWrapper _wuser = p.accountControl.getLoggedInUser();
 		if(!_wuser.isAllowed(Permission.MakeItem))
 			return null;
-		User _user = _wuser.getuser();
+		User _user = _wuser.getUser();
 		Item retitem = Item.makeItem(buyNowPriceInCents, 0, _user, description);
 		if (retitem == null)
 			return null;
