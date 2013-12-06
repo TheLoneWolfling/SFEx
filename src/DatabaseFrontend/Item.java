@@ -19,6 +19,7 @@ public class Item {
 	private static final String BUY_NOW_PRICE_FIELD_NAME = "BuyNowPriceInCents";
 	private static GarbageCollectingConcurrentMap<Long, Item> cache = new GarbageCollectingConcurrentMap<Long, Item>();
 	private static final String DESC_FIELD_NAME = "Description";
+	private static final String NAME_FIELD_NAME = "Name";
 	private static final String ID_FIELD_NAME = "Id";
 	private final static long INVALID_USER = 0;
 	private static final String PRICE_FIELD_NAME = "CurrentPriceInCents";
@@ -29,6 +30,8 @@ public class Item {
 			+ DESC_FIELD_NAME;
 	private static final String SELLER_ID_DOTTED = TABLE_NAME + "."
 			+ SELLER_ID_FIELD_NAME;
+	private static final String NAME_DOTTED = TABLE_NAME + "."
+			+ PRICE_FIELD_NAME;
 	private static final String PRICE_DOTTED = TABLE_NAME + "."
 			+ PRICE_FIELD_NAME;
 	private static final String SOLD_TO_USER_ID_DOTTED = TABLE_NAME + "."
@@ -36,7 +39,7 @@ public class Item {
 	private static final String BUY_NOW_PRICE_DOTTED = TABLE_NAME + "."
 			+ BUY_NOW_PRICE_FIELD_NAME;
 	private static final String ID_DOTTED = TABLE_NAME + "." + ID_FIELD_NAME;
-	public static final String DOTTED_ROW_NAMES = ID_DOTTED + ", "
+	public static final String DOTTED_ROW_NAMES = ID_DOTTED + ", " + NAME_DOTTED + ", "
 			+ BUY_NOW_PRICE_DOTTED + ", " + SOLD_TO_USER_ID_DOTTED + ", "
 			+ PRICE_DOTTED + ", " + SELLER_ID_DOTTED + ", " + DESC_DOTTED;
 
@@ -72,11 +75,19 @@ public class Item {
 		return i;
 	}
 
-	public static Set<Item> getItemsBy(final Set<Location> locations,
+	public static Set<Item> getItemsBy(final Set<String> names, final Set<Location> locations,
 			final Set<Keyword> keywords, final Set<Category> categories,
 			final long minPrice, final long maxPrice, final Set<String> text)
 			throws SQLException {
 		final List<String> searchTerms = new ArrayList<String>();
+		
+		if (!names.isEmpty()) {
+			final List<String> nameSearch = new ArrayList<String>();
+			for (final String n : names)
+				nameSearch.add("(" + NAME_DOTTED
+						+ " LIKE ?)");
+			searchTerms.add("(" + join(nameSearch, "\n or ") + ")");
+		}
 
 		if (!locations.isEmpty()) {
 			final List<String> locationSearch = new ArrayList<String>();
@@ -127,6 +138,8 @@ public class Item {
 		int i = 1;
 		final Set<Item> items = new HashSet<Item>();
 		try {
+			for (final String n : names)
+				st.setString(i++, n);
 			for (final Location l : locations)
 				st.setLong(i++, l.getID());
 			for (final Keyword k : keywords)
@@ -161,6 +174,30 @@ public class Item {
 		final Set<Item> items = new HashSet<Item>();
 		try {
 			st.setLong(1, category.getID());
+			final ResultSet res = st.executeQuery();
+			while (res.next())
+				items.add(getItemFromCache(res));
+		} finally {
+			try {
+				if (st != null)
+					st.close();
+			} catch (final SQLException e) {
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
+			}
+		}
+		return items;
+	}
+	
+	public static Set<Item> getItemsByName(final String name)
+			throws SQLException {
+
+		final String sql = "select * from " + TABLE_NAME
+				+ " where " + NAME_FIELD_NAME + " = ?";
+		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
+		final Set<Item> items = new HashSet<Item>();
+		try {
+			st.setString(1, name);
 			final ResultSet res = st.executeQuery();
 			while (res.next())
 				items.add(getItemFromCache(res));
@@ -281,11 +318,11 @@ public class Item {
 		return builder.toString();
 	}
 
-	public static Item makeItem(final long buyNowPriceInCents,
+	public static Item makeItem(final long buyNowPriceInCents, final String name,
 			final long currentPrice, final User seller, final String description)
 			throws SQLException {
 		final String sql = "insert into " + TABLE_NAME + " ("
-				+ BUY_NOW_PRICE_FIELD_NAME + ", " + PRICE_FIELD_NAME + ", "
+				+ BUY_NOW_PRICE_FIELD_NAME + ", " + NAME_FIELD_NAME + ", " + PRICE_FIELD_NAME + ", "
 				+ SELLER_ID_FIELD_NAME + ", " + DESC_FIELD_NAME
 				+ ") values (?, ?, ?, ?);";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql,
@@ -293,9 +330,10 @@ public class Item {
 		final long itemId;
 		try {
 			st.setLong(1, buyNowPriceInCents);
-			st.setLong(2, currentPrice);
-			st.setLong(3, seller.getID());
-			st.setString(4, description);
+			st.setString(2, name);
+			st.setLong(3, currentPrice);
+			st.setLong(4, seller.getID());
+			st.setString(5, description);
 			try {
 				final int res = st.executeUpdate();
 				if (res != 1)
@@ -328,6 +366,7 @@ public class Item {
 	private final long id;
 	private final long sellerID;
 	private long soldToUserID;
+	private String name;
 
 	private Item(final ResultSet res) throws SQLException {
 		id = res.getLong(ID_FIELD_NAME);
@@ -336,6 +375,7 @@ public class Item {
 		currentPrice = res.getLong(PRICE_FIELD_NAME);
 		sellerID = res.getLong(SELLER_ID_FIELD_NAME);
 		description = res.getString(DESC_FIELD_NAME);
+		name = res.getString(NAME_FIELD_NAME);
 	}
 
 	public boolean deleteItem() throws SQLException {
@@ -368,6 +408,10 @@ public class Item {
 
 	public Set<Category> getCategory() throws SQLException {
 		return Category.getCategoryForItem(this);
+	}
+
+	public String getName() {
+		return name;
 	}
 
 	public String getDescription() {
@@ -406,6 +450,28 @@ public class Item {
 		final int res;
 		try {
 			st.setLong(1, buyNowPriceInCents);
+			st.setLong(2, id);
+			res = st.executeUpdate();
+		} finally {
+			try {
+				if (st != null)
+					st.close();
+			} catch (final SQLException e) {
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
+			}
+		}
+		return res == 1;
+	}
+	
+	public boolean setName(final String name) throws SQLException {
+		this.name = name;
+		final String sql = "update " + TABLE_NAME + " set " + NAME_FIELD_NAME
+				+ " = ? where " + ID_FIELD_NAME + " = ?;";
+		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
+		final int res;
+		try {
+			st.setString(1, name);
 			st.setLong(2, id);
 			res = st.executeUpdate();
 		} finally {

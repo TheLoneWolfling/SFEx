@@ -102,7 +102,7 @@ public class Tester {
 				Item i = null;
 
 				try {
-					i = Item.makeItem(100, 50, u, "ItemDescription");
+					i = Item.makeItem(100, "ItemName", 50, u, "ItemDescription");
 					System.out.println(i);
 					i.setBuyNowPriceInCents(101);
 					i.setCurrentPriceInCents(51);
@@ -182,6 +182,7 @@ public class Tester {
 							System.out.println(l.getChildLocations());
 							System.out.println(m.getChildLocations());
 							System.out.println(new ResultSet(
+									Collections.EMPTY_SET,
 									Collections.EMPTY_SET,
 									Collections.EMPTY_SET,
 									Collections.EMPTY_SET, 0, 10000,

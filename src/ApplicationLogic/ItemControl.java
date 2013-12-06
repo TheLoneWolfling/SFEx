@@ -21,13 +21,13 @@ public class ItemControl {
 		
 	}
 
-	public ItemWrapper newItem(long buyNowPriceInCents, String description) {
+	public ItemWrapper newItem(String name, long buyNowPriceInCents, String description) {
 		try{
 		UserWrapper _wuser = p.accountControl.getLoggedInUser();
 		if(!_wuser.isAllowed(Permission.MakeItem))
 			return null;
 		User _user = _wuser.getUser();
-		Item retitem = Item.makeItem(buyNowPriceInCents, 0, _user, description);
+		Item retitem = Item.makeItem(buyNowPriceInCents, name, 0, _user, description);
 		if (retitem == null)
 			return null;
 		return (new ItemWrapper(retitem,p));

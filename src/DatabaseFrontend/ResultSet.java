@@ -18,9 +18,12 @@ public class ResultSet {
 
 	private final Set<String> text;
 
-	public ResultSet(final Set<Location> locations,
+	private final Set<String> names;
+
+	public ResultSet(final Set<String> names, final Set<Location> locations,
 			final Set<Keyword> keywords, final Set<Category> categories,
 			final long minPrice, final long maxPrice, final Set<String> text) {
+		this.names = names;
 		this.locations = Collections.unmodifiableSet(locations);
 		this.keywords = Collections.unmodifiableSet(keywords);
 		this.categories = Collections.unmodifiableSet(categories);
@@ -34,7 +37,7 @@ public class ResultSet {
 	}
 
 	public Set<Item> getItems() throws SQLException {
-		return Item.getItemsBy(locations, keywords, categories, minPrice,
+		return Item.getItemsBy(names, locations, keywords, categories, minPrice,
 				maxPrice, text);
 	}
 

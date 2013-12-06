@@ -17,11 +17,11 @@ public class SearchControl {
 
 	private final Control control;
 
-	public Set<ReadonlyItemWrapper> search(Set<String> locations, Set<String> keywords,
+	public Set<ReadonlyItemWrapper> search(Set<String> names, Set<String> locations, Set<String> keywords,
 			Set<String> categories, long minimumPrice, long maximumPrice,
 			Set<String> fullText) {
 		try {
-			return control.itemControl.wrapItemsReadOnly(Item.getItemsBy(control.locationControl.unwrap(locations), 
+			return control.itemControl.wrapItemsReadOnly(Item.getItemsBy(names, control.locationControl.unwrap(locations), 
 					control.keywordControl.unwrap(keywords),
 					control.categoryControl.unwrap(categories),minimumPrice, maximumPrice, fullText));
 		} catch (SQLException e) {
