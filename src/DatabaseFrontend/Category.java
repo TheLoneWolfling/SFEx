@@ -7,7 +7,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayDeque;
 import java.util.HashSet;
+import java.util.Queue;
 import java.util.Set;
 
 import com.mysql.jdbc.exceptions.MySQLIntegrityConstraintViolationException;
@@ -94,7 +96,7 @@ public class Category {
 				+ ItemCategoryMapping.TABLE_NAME + " join " + TABLE_NAME
 				+ " on " + ItemCategoryMapping.CATEGORY_ID_DOTTED + "="
 				+ ID_DOTTED + " where "
-				+ ItemCategoryMapping.ITEM_ID_FIELD_NAME + " = ?;";
+				+ ItemCategoryMapping.ITEM_ID_DOTTED + " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final Set<Category> categories = new HashSet<Category>();
 		try {
@@ -299,6 +301,13 @@ public class Category {
 
 	public synchronized boolean setParent(final Category parent)
 			throws SQLException {
+		Category p = parent;
+		while (p != null) {
+			if (p == this)
+				return false;
+			p = p.getParent();
+		}
+		
 		if (parent == null) {
 			level = TOP_LEVEL;
 			parentID = INVALID_PARENT_ID;
@@ -312,9 +321,9 @@ public class Category {
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final int res;
 		try {
-			st.setString(1, name);
-			st.setLong(2, parentID);
-			st.setLong(3, level);
+			st.setLong(1, parentID);
+			st.setLong(2, level);
+			st.setLong(3, id);
 			res = st.executeUpdate();
 		} finally {
 			try {
@@ -325,6 +334,7 @@ public class Category {
 						+ e.getMessage());
 			}
 		}
+		assert (res <= 1);
 		return res == 1;
 	}
 

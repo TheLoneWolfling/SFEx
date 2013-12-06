@@ -55,4 +55,13 @@ public class KeywordControl {
 			return null;
 		}
 	}
+	
+	public Set<String> getPopularKeywords(long limit) {
+		try {
+			return wrap(Keyword.getPopularKeywords(limit));
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return Collections.emptySet();
+		}
+	}
 }

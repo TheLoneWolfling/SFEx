@@ -314,10 +314,6 @@ public class User {
 		return res == 1;
 	}
 	
-	public long getId() {
-		return id;
-	}
-
 	public synchronized boolean setPermission(final Permission permission)
 			throws SQLException {
 		if (!permissions.add(permission))

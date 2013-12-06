@@ -45,4 +45,30 @@ public class ItemLocationMapping {
 		return res == 1;
 	}
 
+	public static boolean removeMapping(Item item, Location l) throws SQLException {
+		final String sql = "delete from " + TABLE_NAME + " where " + ITEM_ID_FIELD_NAME
+				+ " = ? AND " + LOCATION_ID_FIELD_NAME + " = ?;";
+		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
+		final int res;
+		try {
+			st.setLong(1, item.getID());
+			st.setLong(2, l.getID());
+			try {
+				res = st.executeUpdate();
+			} catch (MySQLIntegrityConstraintViolationException s) {
+				return false;
+			}
+		} finally {
+			try {
+				if (st != null) {
+					st.close();
+				}
+			} catch (final SQLException e) {
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
+			}
+		}
+		return res == 1;
+	}
+
 }

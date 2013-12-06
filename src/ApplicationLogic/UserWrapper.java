@@ -90,6 +90,8 @@ public class UserWrapper {
 		if (!control.isLoggedInUserAllowed(this, Permission.EditOwnUser, Permission.EditOtherUsers))
 			return false;
 		try {
+			if (this == control.p.accountControl.getLoggedInUser())
+				control.p.accountControl.logOut();
 			return user.deleteUser();
 		} catch (SQLException e) {
 			e.printStackTrace();

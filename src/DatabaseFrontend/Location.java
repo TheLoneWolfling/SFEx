@@ -17,7 +17,7 @@ public class Location {
 	private static final int INVALID_PARENT = 0;
 	private static final String ID_FIELD_NAME = "Id";
 	private static final String LEVEL_FIELD_NAME = "LevelNo";
-	private static final String LOCATION_TABLE_NAME = "Locations";
+	private static final String TABLE_NAME = "Locations";
 	private static GarbageCollectingConcurrentMap<Long, Location> locationCache = new GarbageCollectingConcurrentMap<Long, Location>();
 	private static final String NAME_FIELD_NAME = "Name";
 	private static final String PARENT_ID_FIELD_NAME = "ParentId";
@@ -25,7 +25,7 @@ public class Location {
 
 	protected static Location getLocationByID(final long id)
 			throws SQLException {
-		final String sql = "select * from " + LOCATION_TABLE_NAME + " where "
+		final String sql = "select * from " + TABLE_NAME + " where "
 				+ ID_FIELD_NAME + " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final Location l;
@@ -49,7 +49,7 @@ public class Location {
 
 	public static Location getLocationByName(final String name)
 			throws SQLException {
-		final String sql = "select * from " + LOCATION_TABLE_NAME + " where "
+		final String sql = "select * from " + TABLE_NAME + " where "
 				+ NAME_FIELD_NAME + " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final Location l;
@@ -106,7 +106,7 @@ public class Location {
 
 	public static Location makeLocation(final String name, final Location parent)
 			throws SQLException {
-		final String sql = "insert into " + LOCATION_TABLE_NAME + " ("
+		final String sql = "insert into " + TABLE_NAME + " ("
 				+ NAME_FIELD_NAME + ", " + PARENT_ID_FIELD_NAME + ", "
 				+ LEVEL_FIELD_NAME + ") values (?, ?, ?);";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql,
@@ -147,9 +147,9 @@ public class Location {
 	}
 
 	private final long id;
-	private final int level;
+	private int level;
 	private String name;
-	private final long parentID;
+	private long parentID;
 
 	private Location(final ResultSet res) throws SQLException {
 		id = res.getLong(ID_FIELD_NAME);
@@ -160,7 +160,7 @@ public class Location {
 
 	public boolean deleteLocation() throws SQLException {
 		assert (getChildLocations().isEmpty());
-		final String sql = "delete from " + LOCATION_TABLE_NAME + " where "
+		final String sql = "delete from " + TABLE_NAME + " where "
 				+ ID_FIELD_NAME + " = ?";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final int res;
@@ -180,7 +180,7 @@ public class Location {
 	}
 
 	public Set<Location> getChildLocations() throws SQLException {
-		final String sql = "select * from " + LOCATION_TABLE_NAME + " where "
+		final String sql = "select * from " + TABLE_NAME + " where "
 				+ PARENT_ID_FIELD_NAME + " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final Set<Location> locations = new HashSet<Location>();
@@ -222,7 +222,7 @@ public class Location {
 	}
 
 	public static Set<Location> getTopLevelLocations() throws SQLException {
-		final String sql = "select * from " + LOCATION_TABLE_NAME + " where "
+		final String sql = "select * from " + TABLE_NAME + " where "
 				+ LEVEL_FIELD_NAME + " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final Set<Location> locations = new HashSet<Location>();
@@ -242,10 +242,49 @@ public class Location {
 		}
 		return locations;
 	}
+	
+	public synchronized boolean setParent(final Location parent)
+			throws SQLException {
+		Location p = parent;
+		while (p != null) {
+			if (p == this)
+				return false;
+			p = p.getParent();
+		}
+		
+		if (parent == null) {
+			level = ROOT_LEVEL;
+			parentID = INVALID_PARENT;
+		} else {
+			level = parent.level + 1;
+			parentID = parent.getID();
+		}
+		final String sql = "update " + TABLE_NAME + " set "
+				+ PARENT_ID_FIELD_NAME + " = ?, " + LEVEL_FIELD_NAME
+				+ " = ? where " + ID_FIELD_NAME + " = ?;";
+		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
+		final int res;
+		try {
+			st.setLong(1, parentID);
+			st.setLong(2, level);
+			st.setLong(3, id);
+			res = st.executeUpdate();
+		} finally {
+			try {
+				if (st != null)
+					st.close();
+			} catch (final SQLException e) {
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
+			}
+		}
+		assert (res <= 1);
+		return res == 1;
+	}
 
 	public boolean setName(final String name) throws SQLException {
 		this.name = name;
-		final String sql = "update " + LOCATION_TABLE_NAME + " set "
+		final String sql = "update " + TABLE_NAME + " set "
 				+ NAME_FIELD_NAME + " = ? where " + ID_FIELD_NAME + " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final int res;

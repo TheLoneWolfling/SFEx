@@ -187,7 +187,7 @@ public class Bid {
 				+ super.toString().split("@")[1] + "]";
 	}
 
-	public long getId() {
+	public long getID() {
 		return id;
 	}
 }

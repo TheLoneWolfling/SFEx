@@ -167,8 +167,10 @@ public class Item {
 
 	protected static Set<Item> getItemsByCategory(final Category category)
 			throws SQLException {
-		final String sql = "select * from " + ItemCategoryMapping.TABLE_NAME
-				+ " where " + ItemCategoryMapping.CATEGORY_ID_FIELD_NAME
+		final String joins = TABLE_NAME + " join " + ItemCategoryMapping.TABLE_NAME + " on "
+				+ ItemCategoryMapping.ITEM_ID_DOTTED + "=" + ID_DOTTED;
+		final String sql = "select " + DOTTED_ROW_NAMES + " from " + joins
+				+ " where " + ItemCategoryMapping.CATEGORY_ID_DOTTED
 				+ " = ?";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final Set<Item> items = new HashSet<Item>();
@@ -215,9 +217,11 @@ public class Item {
 
 	public static Set<Item> getItemsByKeyword(final Keyword keyword)
 			throws SQLException {
-
-		final String sql = "select * from " + ItemKeywordMapping.TABLE_NAME
-				+ " where " + ItemKeywordMapping.KEYWORD_ID_FIELD_NAME + " = ?";
+		final String joins = TABLE_NAME + " join " + ItemKeywordMapping.TABLE_NAME + " on "
+				+ ItemKeywordMapping.ITEM_ID_DOTTED + "=" + ID_DOTTED;
+		final String sql = "select " + DOTTED_ROW_NAMES + " from " + joins
+				+ " where " + ItemKeywordMapping.KEYWORD_ID_DOTTED
+				+ " = ?";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final Set<Item> items = new HashSet<Item>();
 		try {
@@ -239,8 +243,10 @@ public class Item {
 
 	public static Set<Item> getItemsByLocation(final Location location)
 			throws SQLException {
-		final String sql = "select * from " + ItemLocationMapping.TABLE_NAME
-				+ " where " + ItemLocationMapping.LOCATION_ID_FIELD_NAME
+		final String joins = TABLE_NAME + " join " + ItemLocationMapping.TABLE_NAME + " on "
+				+ ItemLocationMapping.ITEM_ID_DOTTED + "=" + ID_DOTTED;
+		final String sql = "select " + DOTTED_ROW_NAMES + " from " + joins
+				+ " where " + ItemLocationMapping.LOCATION_ID_DOTTED
 				+ " = ?";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final Set<Item> items = new HashSet<Item>();
@@ -263,7 +269,7 @@ public class Item {
 
 	public static Set<Item> getItemsByPrice(final long minPrice,
 			final long maxPrice) throws SQLException {
-		final String sql = "select * from " + ItemCategoryMapping.TABLE_NAME
+		final String sql = "select * from " + TABLE_NAME
 				+ " where " + PRICE_FIELD_NAME + " between ? and ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final Set<Item> items = new HashSet<Item>();
@@ -324,7 +330,7 @@ public class Item {
 		final String sql = "insert into " + TABLE_NAME + " ("
 				+ BUY_NOW_PRICE_FIELD_NAME + ", " + NAME_FIELD_NAME + ", " + PRICE_FIELD_NAME + ", "
 				+ SELLER_ID_FIELD_NAME + ", " + DESC_FIELD_NAME
-				+ ") values (?, ?, ?, ?);";
+				+ ") values (?, ?, ?, ?, ?);";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql,
 				Statement.RETURN_GENERATED_KEYS);
 		final long itemId;
@@ -379,6 +385,13 @@ public class Item {
 	}
 
 	public boolean deleteItem() throws SQLException {
+		for (Category c : getCategory())
+			ItemCategoryMapping.removeMapping(this, c);
+		for (Location l : getLocation())
+			ItemLocationMapping.removeMapping(this, l);
+		for (Keyword k : getKeywords())
+			ItemKeywordMapping.removeMapping(this, k);
+		
 		final String sql = "delete from " + TABLE_NAME + " where "
 				+ ID_FIELD_NAME + " = ?";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
@@ -566,15 +579,28 @@ public class Item {
 		return ItemKeywordMapping.addMapping(this, k);
 	}
 
-	public void addCategory(Category c) throws SQLException {
-		ItemCategoryMapping.addMapping(this, c);
+	public boolean addCategory(Category c) throws SQLException {
+		return ItemCategoryMapping.addMapping(this, c);
 	}
 
-	public void addLocation(Location l) throws SQLException {
-		ItemLocationMapping.addMapping(this, l);
+	public boolean addLocation(Location l) throws SQLException {
+		return ItemLocationMapping.addMapping(this, l);
 	}
 
 	public boolean delKeyword(Keyword k) throws SQLException {
 		return ItemKeywordMapping.removeMapping(this, k);
+	}
+
+	public long getCurrentPriceInCents() {
+		return currentPrice;
+	}
+
+	public boolean delCategory(Category c) throws SQLException {
+		return ItemCategoryMapping.removeMapping(this, c);
+		
+	}
+
+	public boolean delLocation(Location l) throws SQLException {
+		return ItemLocationMapping.removeMapping(this, l);
 	}
 }
