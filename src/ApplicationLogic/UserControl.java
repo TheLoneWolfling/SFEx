@@ -14,7 +14,10 @@ public class UserControl {
 
 	public UserWrapper getUserFromEmail(String email) {
 		try {
-			return wrap(User.getUserFromEmail(email));
+			User u = User.getUserFromEmail(email);
+			if (u == null) 
+				return null;
+			return wrap(u);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -22,12 +25,17 @@ public class UserControl {
 	}
 
 	UserWrapper wrap(User user) {
+		if (user == null)
+			return null;
 		return new UserWrapper(user, this.p);
 	}
 
 	public UserWrapper getUserFromId(long id) {
 		try {
-			return wrap(User.getUserFromID(id));
+			User u = User.getUserFromID(id);
+			if (u == null) 
+				return null;
+			return wrap(u);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -36,7 +44,10 @@ public class UserControl {
 
 	public UserWrapper getUserFromName(String name) {
 		try {
-			return wrap(User.getUserFromUserName(name));
+			User u = User.getUserFromUserName(name);
+			if (u == null) 
+				return null;
+			return wrap(u);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

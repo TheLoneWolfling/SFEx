@@ -1,7 +1,15 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1"%>
 <%@ page session= "true" %>
 <%@ page errorPage="errorpage.jsp" %> 
+<%@ page import="ApplicationLogic.Control" %>
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+
+<% Control control  = new Control(session); %>
+
+<% if(!control.accountControl.isLoggedIn()){ response.sendRedirect("/"); } %>
+
 
 <!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
 <!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
@@ -25,7 +33,6 @@
         <link rel="stylesheet" href="css/main.css">
 
         <script src="js/vendor/modernizr-2.6.2-respond-1.1.0.min.js"></script>
-    </head>
     <body>
         <!--[if lt IE 7]>
             <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
@@ -46,7 +53,8 @@
             <li><a href="#about">About</a></li>
             <li><a href="#contact">Contact Us</a></li>
             <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown"><%= session.getAttribute("email") %> <b class="caret"></b></a>
+
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown"><%=control.accountControl.getLoggedInUser().getEmail() %> <b class="caret"></b></a>
               <ul class="dropdown-menu">
                 <li><a href="#">Account</a></li>
                 <li><a href="#">Create Item</a></li>
@@ -68,10 +76,10 @@
 	<!-- Example row of columns -->
       <div class="row">
         <div class="col-lg-4">
-          <h2>Item #1</h2>
+          <h2>Test</h2>
           <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
           <p><a class="btn btn-default" href="#">Buy Item &raquo;</a></p>
-        </div>
+        </div><% System.out.println("Hello6"); %>
         <div class="col-lg-4">
           <h2>Item #2</h2>
           <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>

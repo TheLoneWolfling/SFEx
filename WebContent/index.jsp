@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1"%>
 <%@ page session= "true" %>
 <%@ page errorPage="errorpage.jsp" %> 
+<%@ page import="ApplicationLogic.Control" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
     <head>
@@ -32,9 +33,14 @@
       <div class="container">
         <h1>Welcome To Student Furniture Exchange!</h1>
         <p>This is a E-Marketplace allowing Student's to Buy/Sell Furniture!.</p>
-        <p>Sign Up of Sign In Now!</p>
+        <p>Sign Up or Sign In Now!</p>
         
       </div>
+      
+      <% if(request.getAttribute("failedLogin") != null)
+    	  {%>
+    	  <p style="text-align:center">Invalid Login, Please Try Again!</p>
+    	  <%} %>
       <form class="navbar-form navbar-right" name="loginform" action="Login" Method="POST" style="margin-right: 650px;">
             <div class="form-group">
               <input type="text" name="email" placeholder="Email" class="form-control">

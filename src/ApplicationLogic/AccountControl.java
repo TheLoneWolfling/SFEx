@@ -30,7 +30,7 @@ public class AccountControl {
 	}
 	
 	private static final EnumSet<Permission> stdPermissions = EnumSet.noneOf(Permission.class);
-	private static final EnumSet<Permission> stdUserPermissions = EnumSet.allOf(Permission.class);
+	public static final EnumSet<Permission> stdUserPermissions = EnumSet.allOf(Permission.class);
 
 	private UserWrapper loggedUser;
 	private static SecureRandom r = new SecureRandom();
@@ -57,13 +57,17 @@ public class AccountControl {
 
 	public boolean tryLogin(String name, String password) {
 		UserWrapper toRet = p.userControl.getUserFromEmailOrName(name);
+		if (toRet == null)
+			return false;
 		if (!toRet.checkPass(password))
 			toRet = null;
+		 s.setAttribute("userId", toRet.getId());
 		loggedUser = toRet;
 		return loggedUser != null;
 	}
 
 	public void logOut() {
+		 s.removeAttribute("userId");
 		loggedUser = null;
 		s.invalidate();
 	}
