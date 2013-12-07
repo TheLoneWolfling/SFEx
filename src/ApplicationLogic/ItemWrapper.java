@@ -48,25 +48,31 @@ public class ItemWrapper extends ReadonlyItemWrapper {
 	public boolean delKeyword(String keyword) {
 		if (!control.accountControl.isLoggedInUserAllowed(getSeller(), Permission.EditOwnItems, Permission.EditOtherItems))
 			return false;
+		Keyword k = control.keywordControl.unwrap(keyword);
 		try {
-			Keyword k = control.keywordControl.unwrap(keyword);
-			return item.delKeyword(k);
+			if (!item.delKeyword(k))
+				return false;
+			k.decPopularity(); //Todo: should be atomic
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
 		}
+		return true;
 	}
 
 	public boolean addKeyword(String keyword) {
 		if (!control.accountControl.isLoggedInUserAllowed(getSeller(), Permission.EditOwnItems, Permission.EditOtherItems))
 			return false;
+		Keyword k = control.keywordControl.unwrap(keyword);
 		try {
-			Keyword k = control.keywordControl.unwrap(keyword);
-			return item.addKeyword(k);
+			if (!item.addKeyword(k))
+				return false;
+			k.incPopularity(); //Todo: should be atomic
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
 		}
+		return true;
 	}
 	public boolean setSoldToUser(UserWrapper user) {
 		if (!control.accountControl.isLoggedInUserAllowed(getSeller(), Permission.MakeBid, Permission.EditOtherUsers))

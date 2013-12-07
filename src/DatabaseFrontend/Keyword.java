@@ -231,16 +231,21 @@ public class Keyword {
 		return res == 1;
 	}
 
-	public boolean setPopularity(final long popularity) throws SQLException {
-		this.popularity = popularity;
+	@Override
+	public String toString() {
+		return "Keyword [id=" + id + ", name=" + name + ", popularity="
+				+ popularity + " addr=" + super.toString().split("@")[1] + "]";
+	}
+
+	public boolean incPopularity() throws SQLException {
+		this.popularity = popularity + 1;
 		final String sql = "update " + TABLE_NAME + " set "
-				+ POPULARITY_FIELD_NAME + " = ? where " + ID_FIELD_NAME
+				+ POPULARITY_FIELD_NAME + " = " + POPULARITY_FIELD_NAME + " + 1 where " + ID_FIELD_NAME
 				+ " = ?;";
 		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
 		final int res;
 		try {
-			st.setLong(1, popularity);
-			st.setLong(2, id);
+			st.setLong(1, id);
 			res = st.executeUpdate();
 		} finally {
 			try {
@@ -254,9 +259,26 @@ public class Keyword {
 		return res == 1;
 	}
 
-	@Override
-	public String toString() {
-		return "Keyword [id=" + id + ", name=" + name + ", popularity="
-				+ popularity + " addr=" + super.toString().split("@")[1] + "]";
+	public boolean decPopularity() throws SQLException {
+		assert(popularity != 0);
+		this.popularity = popularity - 1;
+		final String sql = "update " + TABLE_NAME + " set "
+				+ POPULARITY_FIELD_NAME + " = " + POPULARITY_FIELD_NAME + " + 1 where " + ID_FIELD_NAME
+				+ " = ?;";
+		final PreparedStatement st = DataManager.getCon().prepareStatement(sql);
+		final int res;
+		try {
+			st.setLong(1, id);
+			res = st.executeUpdate();
+		} finally {
+			try {
+				if (st != null)
+					st.close();
+			} catch (final SQLException e) {
+				System.out.println("Error closing prepared statement : "
+						+ e.getMessage());
+			}
+		}
+		return res == 1;
 	}
 }
